@@ -1,0 +1,29 @@
+{
+  "name": "elm-xml-decode",
+  "version": "1.0.0",
+  "description": "Xml.Decode for Elm",
+  "main": "index.js",
+  "devDependencies": {
+    "elm": "^0.18.0",
+    "elm-test": "^0.18.10"
+  },
+  "scripts": {
+    "test": "elm-test",
+    "elm-package": "elm-package"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ymtszw/elm-xml-decode.git"
+  },
+  "keywords": [
+    "Xml",
+    "Decoder",
+    "Elm"
+  ],
+  "author": "ymtszw",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/ymtszw/elm-xml-decode/issues"
+  },
+  "homepage": "https://github.com/ymtszw/elm-xml-decode#readme"
+}
