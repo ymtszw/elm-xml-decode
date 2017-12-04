@@ -6,7 +6,11 @@
   "source-directories": [
     "src"
   ],
-  "exposed-modules": [],
+  "exposed-modules": [
+    "Xml.Decode",
+    "Xml.Decode.Pipeline",
+    "Xml.Decode.Extra"
+  ],
   "dependencies": {
     "elm-lang/core": "5.1.1 <= v < 6.0.0",
     "jinjor/elm-xml-parser": "1.0.0 <= v < 2.0.0"

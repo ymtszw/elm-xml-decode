@@ -27,7 +27,7 @@ though I intend to provide an alternative XML decoder which exhibits following p
 Basics:
 
 ```elm
-import Xml.Decode exposing (Decoder, map2, path, single, listOf, string, int)
+import Xml.Decode exposing (Decoder, map2, path, single, list, string, int)
 
 
 type alias Example =
@@ -40,7 +40,7 @@ exampleDecoder : Decoder Example
 exampleDecoder =
     map2 Example
         (path [ "path", "to", "string", "value" ] (single string))
-        (path [ "path", "to", "int", "values" ] (listOf int))
+        (path [ "path", "to", "int", "values" ] (list int))
 ```
 
 Execute decode:
@@ -72,7 +72,7 @@ We have `map`, `map2` and variants, though the following methods are also possib
 Pipeline style!:
 
 ```elm
-import Xml.Decode exposing (Decoder, succeed, single, listOf, string, int)
+import Xml.Decode exposing (Decoder, succeed, single, list, string, int)
 import Xml.Decode.Pipeline exposing (requiredPath)
 
 
@@ -80,20 +80,20 @@ exampleDecoder : Decoder Example
 exampleDecoder =
     succeed Example
         |> requiredPath [ "path", "to", "string", "value" ] (single string)
-        |> requiredPath [ "path", "to", "int", "values" ] (listOf int)
+        |> requiredPath [ "path", "to", "int", "values" ] (list int)
 ```
 
 Applicative style!:
 
 ```elm
-import Xml.Decode exposing (Decoder, succeed, path, single, listOf, string, int)
+import Xml.Decode exposing (Decoder, succeed, path, single, list, string, int)
 import Xml.Decode.Extra exposing ((|:))
 
 exampleDecoder : Decoder Example
 exampleDecoder =
     succeed Example
         |: path [ "path", "to", "string", "value" ] (single string)
-        |: path [ "path", "to", "int", "values" ] (listOf int)
+        |: path [ "path", "to", "int", "values" ] (list int)
 ```
 
 ## Are they efficient? Are they fast?
