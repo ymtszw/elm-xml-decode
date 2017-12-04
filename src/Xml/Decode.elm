@@ -37,6 +37,38 @@ Using [`XmlParser`][xp] as its parser component.
 [xp]: http://package.elm-lang.org/packages/jinjor/elm-xml-parser/latest/XmlParser
 
 
+# Example Codes
+
+Also see examples in [`Xml.Decode.Pipeline`](./Xml-Decode-Pipeline)
+and [`Xml.Decode.Extra`](./Xml-Decode-Extra) for alternative styles.
+
+Examples in this package are doc-tested.
+
+    exampleDecoder : Decoder ( String, List Int )
+    exampleDecoder =
+        map2 (,)
+            (path [ "path", "to", "string", "value" ] (single string))
+            (path [ "path", "to", "int", "values" ] (list int))
+
+    run exampleDecoder
+        """
+        <root>
+            <path>
+                <to>
+                    <string>
+                        <value>SomeString</value>
+                    </string>
+                    <int>
+                        <values>1</values>
+                        <values>2</values>
+                    </int>
+                </to>
+            </path>
+        </root>
+        """
+    --> Ok ( "SomeString", [ 1, 2 ] )
+
+
 # Types
 
 @docs Decoder, ListDecoder, Error, Problem

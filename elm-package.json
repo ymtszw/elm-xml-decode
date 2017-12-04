@@ -8,8 +8,8 @@
   ],
   "exposed-modules": [
     "Xml.Decode",
-    "Xml.Decode.Pipeline",
-    "Xml.Decode.Extra"
+    "Xml.Decode.Extra",
+    "Xml.Decode.Pipeline"
   ],
   "dependencies": {
     "elm-lang/core": "5.1.1 <= v < 6.0.0",

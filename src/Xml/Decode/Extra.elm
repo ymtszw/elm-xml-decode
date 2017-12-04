@@ -6,13 +6,31 @@ module Xml.Decode.Extra exposing (andMap, (|:))
 
 Uses [`(|:)`](#|:) infix operator that allows writing decoders in sequential style like so:
 
-    import Xml.Decode exposing (succeed, path, singleton, string)
+    import Xml.Decode exposing (Decoder, succeed, path, single, list, string, int)
 
-    someRecordDecoder : Decoder SomeRecord
-    someRecordDecoder =
-        succeed SomeRecord
-            |: path [ "path", "to", "textField1" ] (singleton string)
-            |: path [ "path", "to", "textField2" ] (singleton string)
+    applicativeDecoder : Decoder ( String, List Int )
+    applicativeDecoder =
+        succeed (,)
+            |: path [ "path", "to", "string", "value" ] (single string)
+            |: path [ "path", "to", "int", "values" ] (list int)
+
+    Xml.Decode.run applicativeDecoder
+        """
+        <root>
+            <path>
+                <to>
+                    <string>
+                        <value>SomeString</value>
+                    </string>
+                    <int>
+                        <values>1</values>
+                        <values>2</values>
+                    </int>
+                </to>
+            </path>
+        </root>
+        """
+    --> Ok ( "SomeString", [ 1, 2 ] )
 
 Benefit of this style is it leverages standard decoders from [`Xml.Decode`](./Xml-Decode),
 so you only have to import [`(|:)`](#|:).
@@ -33,6 +51,11 @@ import Xml.Decode exposing (Decoder)
 
 
 {-| Equivalent to [`Json.Decode.Extra.andMap`][jdeam], allows writing XML decoders in sequential style.
+
+    import Xml.Decode exposing (succeed, string)
+
+    Xml.Decode.run (andMap string (succeed identity)) "<root>string</root>"
+    --> Ok "string"
 
 [jdeam]: http://package.elm-lang.org/packages/elm-community/json-extra/latest/Json-Decode-Extra#andMap
 

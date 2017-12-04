@@ -32,7 +32,7 @@ import Xml.Decode exposing (Decoder, map2, path, single, list, string, int)
 
 type alias Example =
     { string : String
-    , intList : List Int
+    , integers : List Int
     }
 
 
@@ -62,7 +62,7 @@ Xml.Decode.run exampleDecoder
         </path>
     </root>
     """
---> { string = "String", intList = [ 1, 2 ] } : Example
+--> Ok { string = "SomeString", integers = [ 1, 2 ] } : Example
 ```
 
 ### Decoder compositions
