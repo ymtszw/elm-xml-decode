@@ -7,3 +7,7 @@ cache:
     - "node_modules"
     - "elm-stuff"
     - "tests/elm-stuff"
+notifications:
+  email:
+    on_success: never
+    on_failure: always

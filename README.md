@@ -103,7 +103,9 @@ exampleDecoder =
 ```sh
 npm install
 npm test
-npm run docs # Compile and generate docs.json
+npm run watch:test # Monitor file changes and update doc-test
+npm run docs       # Compile and generate docs.json
+npm run analyse    # Analyse Elm code
 ```
 
 ## Are they efficient? Are they fast?
