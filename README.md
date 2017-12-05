@@ -96,6 +96,14 @@ exampleDecoder =
         |: path [ "path", "to", "int", "values" ] (list int)
 ```
 
+## Development
+
+```sh
+npm install
+npm test
+npm run docs # Compile and generate docs.json
+```
+
 ## Are they efficient? Are they fast?
 
 Benchmark and refinements/optimizations would be cool... though I haven't committed to them.
