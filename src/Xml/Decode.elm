@@ -40,7 +40,7 @@ Using [`XmlParser`][xp] as its parser component.
 [xp]: http://package.elm-lang.org/packages/jinjor/elm-xml-parser/latest/XmlParser
 
 
-# Example Codes
+# Basic Example
 
 Also see examples in [`Xml.Decode.Pipeline`](./Xml-Decode-Pipeline)
 and [`Xml.Decode.Extra`](./Xml-Decode-Extra) for alternative styles.
@@ -50,23 +50,19 @@ Examples in this package are doc-tested.
     exampleDecoder : Decoder ( String, List Int )
     exampleDecoder =
         map2 (,)
-            (path [ "path", "to", "string", "value" ] (single string))
-            (path [ "path", "to", "int", "values" ] (list int))
+            (path [ "string", "value" ] (single string))
+            (path [ "int", "values" ] (list int))
 
     run exampleDecoder
         """
         <root>
-            <path>
-                <to>
-                    <string>
-                        <value>SomeString</value>
-                    </string>
-                    <int>
-                        <values>1</values>
-                        <values>2</values>
-                    </int>
-                </to>
-            </path>
+            <string>
+                <value>SomeString</value>
+            </string>
+            <int>
+                <values>1</values>
+                <values>2</values>
+            </int>
         </root>
         """
     --> Ok ( "SomeString", [ 1, 2 ] )
@@ -196,6 +192,27 @@ decodeString decoder =
 
 It discards Document Type Definitoin (DTD) and Processing Instruction in XML,
 only cares about root XML node.
+
+    import XmlParser exposing (Xml, Node(..))
+
+    exampleDecoder : Decoder ( String, List Int )
+    exampleDecoder =
+        map2 (,)
+            (path [ "string", "value" ] (single string))
+            (path [ "int", "values" ] (list int))
+
+    decodeXml exampleDecoder <|
+        Xml [] Nothing <|
+            Element "root" []
+                [ Element "string" []
+                    [ Element "value" [] [ Text "SomeString" ]
+                    ]
+                , Element "int" []
+                    [ Element "values" [] [ Text "1" ]
+                    , Element "values" [] [ Text "2" ]
+                    ]
+                ]
+    --> Ok ( "SomeString", [ 1, 2 ] )
 
 -}
 decodeXml : Decoder a -> Xml -> Result Error a
@@ -436,6 +453,17 @@ It fails if:
   - there are multiple nodes, or,
   - there are no nodes.
 
+Examples:
+
+    run (path [ "tag" ] (single string)) "<root><tag>string</tag></root>"
+    --> Ok "string"
+
+    run (path [ "tag" ] (single string)) "<root></root>"
+    --> Err "Node not found. At: /tag, Node: Element \"root\" [] []"
+
+    run (path [ "tag" ] (single string)) "<root><tag>string1</tag><tag>string2</tag></root>"
+    --> Err "Multiple nodes found. At: /tag, Node: Element \"root\" [] ([Element \"tag\" [] ([Text \"string1\"]),Element \"tag\" [] ([Text \"string2\"])])"
+
 -}
 single : Decoder a -> ListDecoder a
 single decoder nodes =
@@ -454,6 +482,12 @@ single decoder nodes =
 
 This [`ListDecoder`](#ListDecoder) fails if any incoming items cannot be decoded.
 
+    run (path [ "tag" ] (list string)) "<root><tag>string1</tag><tag>string2</tag></root>"
+    --> Ok [ "string1", "string2" ]
+
+    run (path [ "tag" ] (list string)) "<root><tag>string1</tag><tag><nested>string2</nested></tag></root>"
+    --> Err "The node is not a simple text node. At: /tag, Node: Element \"tag\" [] ([Element \"nested\" [] ([Text \"string2\"])])"
+
 -}
 list : Decoder a -> ListDecoder (List a)
 list decoder =
@@ -469,6 +503,10 @@ listReducer decoder node accResult =
 
 
 {-| Variation of [`list`](#list), which ignores items that cannot be decoded.
+
+    run (path [ "tag" ] (leakyList string)) "<root><tag>string1</tag><tag><nested>string2</nested></tag></root>"
+    --> Ok [ "string1" ]
+
 -}
 leakyList : Decoder a -> ListDecoder (List a)
 leakyList decoder =
@@ -516,18 +554,25 @@ andThen decoderBGen decoderA node =
 
 
 {-| Transform a decoder.
+
+    run (map String.length string) "<root>string</root>"
+    --> Ok 6
+
 -}
 map : (a -> value) -> Decoder a -> Decoder value
 map valueGen decoder =
     decoder >> Result.map valueGen
 
 
-{-| Takes two decoders, then generates a decoder that combines results from those decoders.
+{-| Generates a decoder that combines results from two decoders.
 
 It can be used for generating a decoder for a data type that takes two inputs.
 Although mainly, this is used as a building block of DSL style decoder generation.
 
 Also see `Xml.Decode.Pipeline` or `Xml.Decode.Extra`.
+
+    run (map2 (,) string string) "<root>string</root>"
+    --> Ok ( "string", "string" )
 
 -}
 map2 : (a -> b -> value) -> Decoder a -> Decoder b -> Decoder value
@@ -538,6 +583,13 @@ map2 valueGen decoderA decoderB node =
 
 
 {-| Generates a decoder that results in the default value on failure.
+
+    run (withDefault 0 int) "<root>1</root>"
+    --> Ok 1
+
+    run (withDefault 0 int) "<root>Non Int value</root>"
+    --> Ok 0
+
 -}
 withDefault : a -> Decoder a -> Decoder a
 withDefault default decoder =
@@ -557,6 +609,12 @@ withDefault default decoder =
 
 If the given decoder resulted in `Err`, it succeeds with `Nothing`.
 Otherwise (in cases of `Ok`,) it succeeds with `Just` value.
+
+    run (maybe int) "<root>1</root>"
+    --> Ok (Just 1)
+
+    run (maybe int) "<root>Non Int value</root>"
+    --> Ok Nothing
 
 -}
 maybe : Decoder a -> Decoder (Maybe a)
@@ -605,8 +663,8 @@ Typical usage:
     someRecordDecoder : Decoder SomeRecord
     someRecordDecoder =
         map2 SomeRecord
-            (path [ "path", "to", "string", "value" ] (single string))
-            (path [ "path", "to", "int", "values" ] (list int))
+            (path [ "string", "value" ] (single string))
+            (path [ "int", "values" ] (list int))
 
 Due to the nature of XML, you cannot distinguish a particular tag or tags hold
 whether "singular value" or "list of values", from the structure of XML document itself.

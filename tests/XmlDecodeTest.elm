@@ -12,7 +12,7 @@ suite =
     describe "`Decode`"
         [ describe "`Decoder`s and `decodeXml`"
             [ describe "`string`"
-                [ fuzz string "should decode string" <|
+                [ fuzz string "should decode any string" <|
                     \str ->
                         [ Text str
                         , Element "tag" [] [ Text str ]
@@ -32,7 +32,7 @@ suite =
                             |> mustBeAllError
                 ]
             , describe "`int`"
-                [ fuzz int "should decode integer" <|
+                [ fuzz int "should decode any integer" <|
                     \i ->
                         [ Text <| toString i
                         , Element "tag" [] [ Text <| toString i ]
@@ -50,7 +50,7 @@ suite =
                             |> mustBeAllError
                 ]
             , describe "`float`"
-                [ fuzz2 int float "should decode float (or int into float)" <|
+                [ fuzz2 int float "should decode any float (or int into float)" <|
                     \i f ->
                         [ Text <| toString i
                         , Text <| toString f
