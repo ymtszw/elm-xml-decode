@@ -14,6 +14,9 @@ module Xml.Decode
         , date
         , stringAttr
         , intAttr
+        , floatAttr
+        , boolAttr
+        , dateAttr
         , single
         , list
         , leakyList
@@ -86,7 +89,7 @@ Examples in this package are doc-tested.
 
 # Attribute Decoders
 
-@docs stringAttr, intAttr
+@docs stringAttr, intAttr, floatAttr, boolAttr, dateAttr
 
 
 # List Decoders
@@ -99,9 +102,7 @@ Examples in this package are doc-tested.
 @docs succeed, fail, andThen, map, map2, withDefault, maybe, lazy
 
 
-# Node Locaters
-
-Locates nodes which contain targeted values with various querying pattern.
+# Node Locater
 
 @docs path
 
@@ -217,6 +218,12 @@ If you want to extract values from node attribute, use [`stringAttr`](#stringAtt
 
 [xpn]: http://package.elm-lang.org/packages/jinjor/elm-xml-parser/latest/XmlParser#Node
 
+    run string "<root>string</root>"
+    --> Ok "string"
+
+    run string "<root><nested>string</nested></root>"
+    --> Err "The node is not a simple text node. At: /, Node: Element \"root\" [] ([Element \"nested\" [] ([Text \"string\"])])"
+
 -}
 string : Decoder String
 string node =
@@ -232,6 +239,13 @@ string node =
 
 
 {-| Similar to [`string`](#string), but also tries to convert `String` to `Int`.
+
+    run int "<root>1</root>"
+    --> Ok 1
+
+    run int "<root>value</root>"
+    --> Err "could not convert string 'value' to an Int"
+
 -}
 int : Decoder Int
 int =
@@ -244,6 +258,13 @@ mapParseError =
 
 
 {-| Decodes to `Float`.
+
+    run float "<root>1.0</root>"
+    --> Ok 1.0
+
+    run float "<root>value</root>"
+    --> Err "could not convert string 'value' to a Float"
+
 -}
 float : Decoder Float
 float =
@@ -263,28 +284,35 @@ We follow this specification, case-sensitively.
 
 [xsd]: https://www.w3.org/TR/xmlschema-2/#boolean
 
+    run bool "<root>true</root>"
+    --> Ok True
+
+    run bool "<root>value</root>"
+    --> Err "Not a valid boolean value."
+
 -}
 bool : Decoder Bool
 bool =
-    let
-        toBool str =
-            case str of
-                "true" ->
-                    Ok True
+    string >> Result.andThen (toBool >> mapParseError)
 
-                "1" ->
-                    Ok True
 
-                "false" ->
-                    Ok False
+toBool : String -> Result String Bool
+toBool str =
+    case str of
+        "true" ->
+            Ok True
 
-                "0" ->
-                    Ok False
+        "1" ->
+            Ok True
 
-                _ ->
-                    Err "Not a valid boolean value."
-    in
-        string >> Result.andThen (toBool >> mapParseError)
+        "false" ->
+            Ok False
+
+        "0" ->
+            Ok False
+
+        _ ->
+            Err "Not a valid boolean value."
 
 
 {-| Decodes to `Date`.
@@ -292,6 +320,14 @@ bool =
 [It uses `new Date()` of JavaScript under the hood][date].
 
 [date]: https://github.com/elm-lang/core/blob/5.1.1/src/Native/Date.js#L5
+
+    import Date
+
+    run date "<root>2017-01-01T00:00:00Z</root>"
+    --> Date.fromString "2017-01-01T00:00:00Z"
+
+    run date "<root>value</root>"
+    --> Err "Unable to parse 'value' as a date. Dates must be in the ISO 8601 format."
 
 -}
 date : Decoder Date
@@ -309,6 +345,9 @@ Fails if the node does not have specified attribute.
 
     run (stringAttr "attr") "<root attr='value'></root>"
     --> Ok "value"
+
+    run (stringAttr "attr") "<root></root>"
+    --> Err "Attribute 'attr' not found. At: /, Node: Element \"root\" [] []"
 
 [xpn]: http://package.elm-lang.org/packages/jinjor/elm-xml-parser/latest/XmlParser#Node
 
@@ -354,6 +393,50 @@ fetchAttributeValue name_ attrs =
 intAttr : String -> Decoder Int
 intAttr name_ =
     stringAttr name_ >> Result.andThen (String.toInt >> mapParseError)
+
+
+{-| Decodes an attribute value into `Float`.
+
+    run (floatAttr "attr") "<root attr='1.5'></root>"
+    --> Ok 1.5
+
+    run (floatAttr "attr") "<root attr='value'></root>"
+    --> Err "could not convert string 'value' to a Float"
+
+-}
+floatAttr : String -> Decoder Float
+floatAttr name_ =
+    stringAttr name_ >> Result.andThen (String.toFloat >> mapParseError)
+
+
+{-| Decodes an attribute value into `Bool`.
+
+    run (boolAttr "attr") "<root attr='true'></root>"
+    --> Ok True
+
+    run (boolAttr "attr") "<root attr='value'></root>"
+    --> Err "Not a valid boolean value."
+
+-}
+boolAttr : String -> Decoder Bool
+boolAttr name_ =
+    stringAttr name_ >> Result.andThen (toBool >> mapParseError)
+
+
+{-| Decodes an attribute value into `Date`.
+
+    import Date
+
+    run (dateAttr "attr") "<root attr='2017-01-01T00:00:00Z'></root>"
+    --> Date.fromString "2017-01-01T00:00:00Z"
+
+    run (dateAttr "attr") "<root attr='value'></root>"
+    --> Err "Unable to parse 'value' as a date. Dates must be in the ISO 8601 format."
+
+-}
+dateAttr : String -> Decoder Date
+dateAttr name_ =
+    stringAttr name_ >> Result.andThen (Date.fromString >> mapParseError)
 
 
 
@@ -647,9 +730,9 @@ errorToString error =
 
         DetailedError path_ node r ->
             problemToString r
-                ++ (" At: " ++ String.join "/" path_)
+                ++ (" At: /" ++ String.join "/" path_)
                 -- We would like to have formatNode here...
-                ++ (" Node: " ++ toString node)
+                ++ (", Node: " ++ toString node)
 
 
 problemToString : Problem -> String
