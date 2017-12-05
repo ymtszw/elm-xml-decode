@@ -319,15 +319,10 @@ toBool str =
 
 [It uses `new Date()` of JavaScript under the hood][date].
 
+[Likely this needs to be updated for later versoins of core][depr].
+
 [date]: https://github.com/elm-lang/core/blob/5.1.1/src/Native/Date.js#L5
-
-    import Date
-
-    run date "<root>2017-01-01T00:00:00Z</root>"
-    --> Date.fromString "2017-01-01T00:00:00Z"
-
-    run date "<root>value</root>"
-    --> Err "Unable to parse 'value' as a date. Dates must be in the ISO 8601 format."
+[depr]: https://github.com/elm-lang/core/commit/a892fdf705f83523752c5469384e9880fbdfe3b1#diff-25d902c24283ab8cfbac54dfa101ad31
 
 -}
 date : Decoder Date
@@ -424,15 +419,6 @@ boolAttr name_ =
 
 
 {-| Decodes an attribute value into `Date`.
-
-    import Date
-
-    run (dateAttr "attr") "<root attr='2017-01-01T00:00:00Z'></root>"
-    --> Date.fromString "2017-01-01T00:00:00Z"
-
-    run (dateAttr "attr") "<root attr='value'></root>"
-    --> Err "Unable to parse 'value' as a date. Dates must be in the ISO 8601 format."
-
 -}
 dateAttr : String -> Decoder Date
 dateAttr name_ =
