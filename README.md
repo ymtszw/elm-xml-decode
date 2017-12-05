@@ -1,5 +1,7 @@
 # elm-xml-decode
 
+[![Build Status](https://travis-ci.org/ymtszw/elm-xml-decode.svg?branch=master)](https://travis-ci.org/ymtszw/elm-xml-decode)
+
 XML decoder, sharing the spirit of [`Json.Decode`][jd].
 
 Using [jinjor/elm-xml-parser][exp] as its parser component.

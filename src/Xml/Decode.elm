@@ -2,8 +2,8 @@ module Xml.Decode
     exposing
         ( Decoder
         , ListDecoder
-        , Error(..)
-        , Problem(..)
+        , Error(SimpleError, DetailedError)
+        , Problem(NodeNotFound, AttributeNotFound, Duplicate, Unparsable)
         , run
         , decodeString
         , decodeXml
@@ -110,7 +110,7 @@ Examples in this package are doc-tested.
 -}
 
 import Date exposing (Date)
-import XmlParser exposing (Xml, Node(..), Attribute)
+import XmlParser exposing (Xml, Node(Text, Element), Attribute)
 
 
 -- TYPES
@@ -626,7 +626,7 @@ maybe decoder =
                     Ok (Just val)
 
                 Err _ ->
-                    Ok (Nothing)
+                    Ok Nothing
     in
         decoder >> maybify
 
