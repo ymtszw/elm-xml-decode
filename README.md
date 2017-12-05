@@ -14,15 +14,20 @@ Using [jinjor/elm-xml-parser][exp] as its parser component.
 [eeue56/elm-xml][ex] is an existing full-package XML parser/decoder for Elm,
 though I intend to provide an alternative XML decoder which exhibits following properties:
 
-- Provides `Decoder`-based APIs, sharing the spirit of [`Json.Decode`][jd]
-- Also provides DSL-styled decoder compositions, as in `Xml.Decode.Pipeline`, `Xml.Decode.Extra`
+- Provides [`Decoder`][de]-based APIs, sharing the spirit of [`Json.Decode`][jd]
+- Also provides DSL-styled decoder compositions, as in [`Xml.Decode.Pipeline`][xdp], [`Xml.Decode.Extra`][xde]
     - They share the sprits of [`Json.Decode.Pipeline`][jdp] and [`Json.Decode.Extra`][jde], respectively
-- Handles list of XML node with identical tags, using `ListDecoder` type
+- Handles list of XML node with identical tags, using [`ListDecoder`][ld] type
 - Locates targeting XML nodes using "path" of tags, partially mimicking XPath
 
 [ex]: http://package.elm-lang.org/packages/eeue56/elm-xml/latest
+[de]: http://package.elm-lang.org/packages/ymtszw/elm-xml-decode/latest/Xml-Decode#Decoder
 [jdp]: http://package.elm-lang.org/packages/NoRedInk/elm-decode-pipeline/latest/Json-Decode-Pipeline
 [jde]: http://package.elm-lang.org/packages/elm-community/json-extra/latest/Json-Decode-Extra
+[xdp]: http://package.elm-lang.org/packages/ymtszw/elm-xml-decode/latest/Xml-Decode-Pipeline
+[xde]: http://package.elm-lang.org/packages/ymtszw/elm-xml-decode/latest/Xml-Decode-Extra
+[xdp]: http://package.elm-lang.org/packages/ymtszw/elm-xml-decode/latest/Xml-Decode#ListDecoder
+
 
 ## Examples
 
