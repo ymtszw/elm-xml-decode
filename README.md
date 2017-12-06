@@ -1,6 +1,12 @@
 # elm-xml-decode
 
-[![Build Status](https://travis-ci.org/ymtszw/elm-xml-decode.svg?branch=master)](https://travis-ci.org/ymtszw/elm-xml-decode)
+[![GitHub package version][v]](http://package.elm-lang.org/packages/ymtszw/elm-http-xml/latest)
+[![license][l]](https://github.com/ymtszw/elm-http-xml/blob/master/LICENSE)
+[![Build Status][b]](https://travis-ci.org/ymtszw/elm-xml-decode)
+
+[v]: https://img.shields.io/badge/dynamic/json.svg?label=elm-package&colorB=5f9ea0&query=$.version&uri=https%3A%2F%2Fraw.githubusercontent.com%2Fymtszw%2Felm-xml-decode%2Fmaster%2Felm-package.json
+[l]: https://img.shields.io/badge/dynamic/json.svg?label=license&colorB=008b8b&query=$.license&uri=https%3A%2F%2Fraw.githubusercontent.com%2Fymtszw%2Felm-xml-decode%2Fmaster%2Felm-package.json
+[b]: https://travis-ci.org/ymtszw/elm-xml-decode.svg?branch=master
 
 XML decoder, sharing the spirit of [`Json.Decode`][jd].
 

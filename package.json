@@ -1,8 +1,7 @@
 {
   "name": "elm-xml-decode",
   "version": "1.0.0",
-  "description": "Xml.Decode for Elm",
-  "main": "index.js",
+  "description": "Xml Decoder for Elm",
   "devDependencies": {
     "elm": "^0.18.0",
     "elm-analyse": "^0.12.1",
