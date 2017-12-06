@@ -1,7 +1,7 @@
 # elm-xml-decode
 
-[![GitHub package version][v]](http://package.elm-lang.org/packages/ymtszw/elm-http-xml/latest)
-[![license][l]](https://github.com/ymtszw/elm-http-xml/blob/master/LICENSE)
+[![GitHub package version][v]](http://package.elm-lang.org/packages/ymtszw/elm-xml-decode/latest)
+[![license][l]](https://github.com/ymtszw/elm-xml-decode/blob/master/LICENSE)
 [![Build Status][b]](https://travis-ci.org/ymtszw/elm-xml-decode)
 
 [v]: https://img.shields.io/badge/dynamic/json.svg?label=elm-package&colorB=5f9ea0&query=$.version&uri=https%3A%2F%2Fraw.githubusercontent.com%2Fymtszw%2Felm-xml-decode%2Fmaster%2Felm-package.json
