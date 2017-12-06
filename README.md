@@ -4,8 +4,8 @@
 [![license][l]](https://github.com/ymtszw/elm-xml-decode/blob/master/LICENSE)
 [![Build Status][b]](https://travis-ci.org/ymtszw/elm-xml-decode)
 
-[v]: https://img.shields.io/badge/dynamic/json.svg?label=elm-package&colorB=5f9ea0&query=$.version&uri=https%3A%2F%2Fraw.githubusercontent.com%2Fymtszw%2Felm-xml-decode%2Fmaster%2Felm-package.json
-[l]: https://img.shields.io/badge/dynamic/json.svg?label=license&colorB=008b8b&query=$.license&uri=https%3A%2F%2Fraw.githubusercontent.com%2Fymtszw%2Felm-xml-decode%2Fmaster%2Felm-package.json
+[v]: https://img.shields.io/badge/elm--package-1.0.0-blue.svg?maxAge=3600
+[l]: https://img.shields.io/badge/license-BSD--3--Clause-blue.svg?maxAge=3600
 [b]: https://travis-ci.org/ymtszw/elm-xml-decode.svg?branch=master
 
 XML decoder, sharing the spirit of [`Json.Decode`][jd].
