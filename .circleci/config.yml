@@ -1,16 +1,15 @@
 version: 2
 jobs:
-  build:
+  node6:
     docker:
-      - image: circleci/node:6.12
+      - image: circleci/node:6
     working_directory: ~/repo
     steps:
       - checkout
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "package.json" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+          - v6-dependencies-{{ checksum "package.json" }}
+          - v6-dependencies-
       - run: npm install
       - save_cache:
           paths:
@@ -18,5 +17,25 @@ jobs:
             - elm-stuff
             - tests/Doc
             - tests/elm-stuff
-          key: v1-dependencies-{{ checksum "package.json" }}
-      - run: yarn test
+          key: v6-dependencies-{{ checksum "package.json" }}
+      - run: npm test
+  node8:
+    docker:
+      - image: circleci/node:8
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - v8-dependencies-{{ checksum "package.json" }}
+          # fallback to using the latest cache if no exact match is found
+          - v8-dependencies-
+      - run: npm install
+      - save_cache:
+          paths:
+            - node_modules
+            - elm-stuff
+            - tests/Doc
+            - tests/elm-stuff
+          key: v8-dependencies-{{ checksum "package.json" }}
+      - run: npm test
