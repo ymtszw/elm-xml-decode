@@ -39,3 +39,10 @@ jobs:
             - tests/elm-stuff
           key: v8-dependencies-{{ checksum "package.json" }}
       - run: npm test
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - node6
+      - node8
