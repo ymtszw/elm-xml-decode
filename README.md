@@ -32,7 +32,7 @@ though I intend to provide an alternative XML decoder which exhibits following p
 [jde]: http://package.elm-lang.org/packages/elm-community/json-extra/latest/Json-Decode-Extra
 [xdp]: http://package.elm-lang.org/packages/ymtszw/elm-xml-decode/latest/Xml-Decode-Pipeline
 [xde]: http://package.elm-lang.org/packages/ymtszw/elm-xml-decode/latest/Xml-Decode-Extra
-[xdp]: http://package.elm-lang.org/packages/ymtszw/elm-xml-decode/latest/Xml-Decode#ListDecoder
+[ld]: http://package.elm-lang.org/packages/ymtszw/elm-xml-decode/latest/Xml-Decode#ListDecoder
 
 
 ## Examples
