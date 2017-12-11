@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Using rather unsafe `pwd` since $HOME is unavailable in CircleCI
 set -eu
 cwd=$(pwd)
 if [ ! -d sysconfcpus/bin ]; then

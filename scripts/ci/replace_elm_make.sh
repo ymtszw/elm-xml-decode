@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # replace normal elm-make with sysconfcpus-prefixed elm-make
 # epic build time improvement - see https://github.com/elm-lang/elm-compiler/issues/1473#issuecomment-245704142
-# Using `pwd` for somewhat unsafe directory detection; since $HOME is not available in CircleCI
+# Using rather unsafe `pwd` since $HOME is unavailable in CircleCI
 set -euo pipefail
 if ! grep "sysconfcpus" "$(npm bin)/elm-make"; then
   mv "$(npm bin)/elm-make" "$(npm bin)/elm-make-old"
