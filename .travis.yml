@@ -14,9 +14,9 @@ cache:
     - "tests/elm-stuff"
     - "tests/Doc"
 before_install:
-  - ./scripts/ci/ensure_libsysconfcpus.sh
+  - ./scripts/ci/ensure_libsysconfcpus.sh "$TRAVIS_BUILD_DIR"
 before_script:
-  - ./scripts/ci/replace_elm_make.sh
+  - ./scripts/ci/replace_elm_make.sh "$TRAVIS_BUILD_DIR"
 notifications:
   email:
     on_success: never
