@@ -12,6 +12,8 @@ jobs:
           - v6-dependencies-
       - run: ./scripts/ci/ensure_libsysconfcpus.sh
       - run: npm install
+      - run: ./scripts/ci/replace_elm_make.sh
+      - run: npm test
       - save_cache:
           paths:
             - sysconfcpus
@@ -20,8 +22,6 @@ jobs:
             - tests/Doc
             - tests/elm-stuff
           key: v6-dependencies-{{ checksum "package.json" }}-{{ checksum "elm-package.json" }}
-      - run: ./scripts/ci/replace_elm_make.sh
-      - run: npm test
   node8:
     docker:
       - image: circleci/node:8
@@ -34,6 +34,8 @@ jobs:
           - v8-dependencies-
       - run: ./scripts/ci/ensure_libsysconfcpus.sh
       - run: npm install
+      - run: ./scripts/ci/replace_elm_make.sh
+      - run: npm test
       - save_cache:
           paths:
             - sysconfcpus
@@ -42,8 +44,6 @@ jobs:
             - tests/Doc
             - tests/elm-stuff
           key: v8-dependencies-{{ checksum "package.json" }}-{{ checksum "elm-package.json" }}
-      - run: ./scripts/ci/replace_elm_make.sh
-      - run: npm test
 
 workflows:
   version: 2
