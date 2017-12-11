@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -eu
-cwd="$1"
+cwd=$(pwd)
 if [ ! -d sysconfcpus/bin ]; then
   git clone https://github.com/obmarg/libsysconfcpus.git
   pushd libsysconfcpus

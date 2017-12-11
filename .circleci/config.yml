@@ -10,7 +10,7 @@ jobs:
           keys:
           - v6-dependencies-{{ checksum "package.json" }}
           - v6-dependencies-
-      - run: ./scripts/ci/ensure_libsysconfcpus.sh $CIRCLE_WORKING_DIRECTORY
+      - run: ./scripts/ci/ensure_libsysconfcpus.sh
       - run: npm install
       - save_cache:
           paths:
@@ -20,7 +20,7 @@ jobs:
             - tests/Doc
             - tests/elm-stuff
           key: v6-dependencies-{{ checksum "package.json" }}
-      - run: ./scripts/ci/replace_elm_make.sh $CIRCLE_WORKING_DIRECTORY
+      - run: ./scripts/ci/replace_elm_make.sh
       - run: npm test
   node8:
     docker:
@@ -33,7 +33,7 @@ jobs:
           - v8-dependencies-{{ checksum "package.json" }}
           # fallback to using the latest cache if no exact match is found
           - v8-dependencies-
-      - run: ./scripts/ci/ensure_libsysconfcpus.sh $CIRCLE_WORKING_DIRECTORY
+      - run: ./scripts/ci/ensure_libsysconfcpus.sh
       - run: npm install
       - save_cache:
           paths:
@@ -43,7 +43,7 @@ jobs:
             - tests/Doc
             - tests/elm-stuff
           key: v8-dependencies-{{ checksum "package.json" }}
-      - run: ./scripts/ci/replace_elm_make.sh $CIRCLE_WORKING_DIRECTORY
+      - run: ./scripts/ci/replace_elm_make.sh
       - run: npm test
 
 workflows:
