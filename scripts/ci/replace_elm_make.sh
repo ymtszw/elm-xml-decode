@@ -3,13 +3,16 @@
 # epic build time improvement - see https://github.com/elm-lang/elm-compiler/issues/1473#issuecomment-245704142
 # Using rather unsafe `pwd` since $HOME is unavailable in CircleCI
 set -euo pipefail
-if ! grep "sysconfcpus" "$(npm bin)/elm-make"; then
-  mv "$(npm bin)/elm-make" "$(npm bin)/elm-make-old"
+ncore=${1:-1}
+if ! grep "sysconfcpus -n ${ncore}" "$(npm bin)/elm-make"; then
+  if [ ! -f "$(npm bin)/elm-make-old" ]; then
+    mv "$(npm bin)/elm-make" "$(npm bin)/elm-make-old"
+  fi
   cat << EOF > "$(npm bin)/elm-make"
 #!/usr/bin/env bash
 set -eu
-echo "Running elm-make with sysconfcpus -n 2"
-$(pwd)/sysconfcpus/bin/sysconfcpus -n 2 "$(npm bin)/elm-make-old" "\$@"
+echo "Running elm-make with sysconfcpus -n ${ncore}"
+$(pwd)/sysconfcpus/bin/sysconfcpus -n ${ncore} "$(npm bin)/elm-make-old" "\$@"
 EOF
   chmod +x "$(npm bin)/elm-make"
 fi

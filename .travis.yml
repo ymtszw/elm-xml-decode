@@ -16,7 +16,7 @@ cache:
 before_install:
   - ./scripts/ci/ensure_libsysconfcpus.sh
 before_script:
-  - ./scripts/ci/replace_elm_make.sh
+  - ./scripts/ci/replace_elm_make.sh 2
 notifications:
   email:
     on_success: never
