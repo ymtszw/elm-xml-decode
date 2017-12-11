@@ -31,7 +31,6 @@ jobs:
       - restore_cache:
           keys:
           - v8-dependencies-{{ checksum "package.json" }}-{{ checksum "elm-package.json" }}
-          # fallback to using the latest cache if no exact match is found
           - v8-dependencies-
       - run: ./scripts/ci/ensure_libsysconfcpus.sh
       - run: npm install
