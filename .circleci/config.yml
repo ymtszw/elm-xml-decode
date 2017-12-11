@@ -3,7 +3,7 @@ jobs:
   node6:
     docker:
       - image: circleci/node:6
-    working_directory: ~/repo
+    working_directory: "${HOME}/repo"
     steps:
       - checkout
       - restore_cache:
@@ -25,7 +25,7 @@ jobs:
   node8:
     docker:
       - image: circleci/node:8
-    working_directory: ~/repo
+    working_directory: "${HOME}/repo"
     steps:
       - checkout
       - restore_cache:
