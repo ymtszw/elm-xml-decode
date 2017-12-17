@@ -239,7 +239,7 @@ If you want to extract values from node attribute, use [`stringAttr`](#stringAtt
     --> Ok "string"
 
     run string "<root><nested>string</nested></root>"
-    --> Err "The node is not a simple text node. At: /, Node: Element \"root\" [] ([Element \"nested\" [] ([Text \"string\"])])"
+    --> Err "The node is not a simple text node. At: /, Node: <root><nested>string</nested></root>"
 
 -}
 string : Decoder String
@@ -359,7 +359,7 @@ Fails if the node does not have specified attribute.
     --> Ok "value"
 
     run (stringAttr "attr") "<root></root>"
-    --> Err "Attribute 'attr' not found. At: /, Node: Element \"root\" [] []"
+    --> Err "Attribute 'attr' not found. At: /, Node: <root></root>"
 
 [xpn]: http://package.elm-lang.org/packages/jinjor/elm-xml-parser/latest/XmlParser#Node
 
@@ -459,10 +459,10 @@ Examples:
     --> Ok "string"
 
     run (path [ "tag" ] (single string)) "<root></root>"
-    --> Err "Node not found. At: /tag, Node: Element \"root\" [] []"
+    --> Err "Node not found. At: /tag, Node: <root></root>"
 
     run (path [ "tag" ] (single string)) "<root><tag>string1</tag><tag>string2</tag></root>"
-    --> Err "Multiple nodes found. At: /tag, Node: Element \"root\" [] ([Element \"tag\" [] ([Text \"string1\"]),Element \"tag\" [] ([Text \"string2\"])])"
+    --> Err "Multiple nodes found. At: /tag, Node: <root><tag>string1</tag><tag>string2</tag></root>"
 
 -}
 single : Decoder a -> ListDecoder a
@@ -486,7 +486,7 @@ This [`ListDecoder`](#ListDecoder) fails if any incoming items cannot be decoded
     --> Ok [ "string1", "string2" ]
 
     run (path [ "tag" ] (list string)) "<root><tag>string1</tag><tag><nested>string2</nested></tag></root>"
-    --> Err "The node is not a simple text node. At: /tag, Node: Element \"tag\" [] ([Element \"nested\" [] ([Text \"string2\"])])"
+    --> Err "The node is not a simple text node. At: /tag, Node: <tag><nested>string2</nested></tag>"
 
 -}
 list : Decoder a -> ListDecoder (List a)
@@ -775,8 +775,67 @@ errorToString error =
         DetailedError path_ node r ->
             problemToString r
                 ++ (" At: /" ++ String.join "/" path_)
-                -- We would like to have formatNode here...
-                ++ (", Node: " ++ toString node)
+                ++ (", Node: " ++ formatNode node)
+
+
+{-| Format XML node for error dump. Always produce end tags.
+-}
+formatNode : Node -> String
+formatNode node =
+    case node of
+        Element tagName attrs children ->
+            "<"
+                ++ escape tagName
+                ++ attributesToString attrs
+                ++ ">"
+                ++ (children |> List.map formatNode |> String.join "")
+                ++ "</"
+                ++ escape tagName
+                ++ ">"
+
+        Text s ->
+            escape s
+
+
+attributesToString : List Attribute -> String
+attributesToString attrs =
+    case attrs of
+        [] ->
+            ""
+
+        _ ->
+            " " ++ (attrs |> List.map formatAttribute |> String.join " ")
+
+
+formatAttribute : Attribute -> String
+formatAttribute attribute =
+    escape attribute.name ++ "=\"" ++ escape attribute.value ++ "\""
+
+
+escape : String -> String
+escape s =
+    let
+        reducer char =
+            case char of
+                '&' ->
+                    String.append "&amp;"
+
+                '<' ->
+                    String.append "&lt;"
+
+                '>' ->
+                    String.append "&gt;"
+
+                '"' ->
+                    String.append "&quot;"
+
+                '\'' ->
+                    String.append "&apos;"
+
+                c ->
+                    String.cons c
+    in
+        String.foldr reducer "" s
 
 
 problemToString : Problem -> String
