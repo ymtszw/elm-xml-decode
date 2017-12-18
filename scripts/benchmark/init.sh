@@ -5,8 +5,9 @@ node "$(dirname "$0")/init.js"
 (
   cd benchmarks
   "$(npm bin)/elm-package" install
-  # Default content below is elm-formatted
-  cat << EOF > Benchmarks.elm
+  if [ ! -f Benchmarks.elm ]; then
+    # Default content below is elm-formatted
+    cat << EOF > Benchmarks.elm
 module Benchmarks exposing (main)
 
 import Benchmark exposing (..)
@@ -40,4 +41,5 @@ main =
     program suite
 
 EOF
+  fi
 )
