@@ -121,10 +121,24 @@ npm run docs       # Compile and generate docs.json
 npm run analyse    # Analyse Elm code
 ```
 
-## Are they efficient? Are they fast?
+## Benchmark: Are they efficient? Are they fast?
 
-Benchmark and refinements/optimizations would be cool... though I haven't committed to them.
-Help, help me!
+Benchmarks are worked on under `benchmarks/` directory. Still work-in-progress.
+Should be available [here][bench] when prepared.
+
+[bench]: https://ymtszw.github.io/elm-xml-decode/
+
+Using [BrianHicks/elm-benchmark][eb].
+
+[eb]: http://package.elm-lang.org/packages/BrianHicks/elm-benchmark/latest/Benchmark
+
+Develop:
+
+```sh
+npm run bench:init
+npm run bench:compile
+open docs/index.html
+```
 
 ## License
 
