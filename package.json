@@ -15,7 +15,9 @@
     "make": "elm-make",
     "package": "elm-package",
     "docs": "elm-make --docs=docs.json",
-    "analyse": "elm-analyse"
+    "analyse": "elm-analyse",
+    "bench:compile": "./scripts/benchmark/compile.sh",
+    "bench:init": "./scripts/benchmark/init.sh"
   },
   "repository": {
     "type": "git",
