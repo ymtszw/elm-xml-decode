@@ -5,6 +5,7 @@ import Fuzz exposing (..)
 import Test exposing (..)
 import XmlParser exposing (Node(..))
 import Xml.Decode as XD exposing (Decoder)
+import Xml.Decode.Internal as Internal
 
 
 suite : Test
@@ -181,6 +182,13 @@ suite =
                             |> XD.decodeXml (XD.maybe <| XD.path [ "nonexisting" ] <| XD.single XD.string)
                             |> equal (Ok Nothing)
                 ]
+            ]
+        , describe "Internal"
+            [ fuzz string "escape and escapeR should be equal" <|
+                \str ->
+                    equal
+                        (Internal.escape str)
+                        (Internal.escapeR str)
             ]
         ]
 
