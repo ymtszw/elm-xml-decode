@@ -21340,37 +21340,3093 @@ var _BrianHicks$elm_benchmark$Benchmark_Runner$program = function (benchmark) {
 			subscriptions: _elm_lang$core$Basics$always(_elm_lang$core$Platform_Sub$none)
 		});
 };
-var _ymtszw$elm_xml_decode$Benchmarks$suite = function () {
-	var mapper = function ($char) {
-		var _p0 = $char;
-		if (_p0.valueOf() === 'd') {
-			return _elm_lang$core$Native_Utils.chr('D');
-		} else {
-			return $char;
+//import Result //
+
+var _elm_lang$core$Native_Date = function() {
+
+function fromString(str)
+{
+	var date = new Date(str);
+	return isNaN(date.getTime())
+		? _elm_lang$core$Result$Err('Unable to parse \'' + str + '\' as a date. Dates must be in the ISO 8601 format.')
+		: _elm_lang$core$Result$Ok(date);
+}
+
+var dayTable = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+var monthTable =
+	['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+	 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+
+return {
+	fromString: fromString,
+	year: function(d) { return d.getFullYear(); },
+	month: function(d) { return { ctor: monthTable[d.getMonth()] }; },
+	day: function(d) { return d.getDate(); },
+	hour: function(d) { return d.getHours(); },
+	minute: function(d) { return d.getMinutes(); },
+	second: function(d) { return d.getSeconds(); },
+	millisecond: function(d) { return d.getMilliseconds(); },
+	toTime: function(d) { return d.getTime(); },
+	fromTime: function(t) { return new Date(t); },
+	dayOfWeek: function(d) { return { ctor: dayTable[d.getDay()] }; }
+};
+
+}();var _elm_lang$core$Date$millisecond = _elm_lang$core$Native_Date.millisecond;
+var _elm_lang$core$Date$second = _elm_lang$core$Native_Date.second;
+var _elm_lang$core$Date$minute = _elm_lang$core$Native_Date.minute;
+var _elm_lang$core$Date$hour = _elm_lang$core$Native_Date.hour;
+var _elm_lang$core$Date$dayOfWeek = _elm_lang$core$Native_Date.dayOfWeek;
+var _elm_lang$core$Date$day = _elm_lang$core$Native_Date.day;
+var _elm_lang$core$Date$month = _elm_lang$core$Native_Date.month;
+var _elm_lang$core$Date$year = _elm_lang$core$Native_Date.year;
+var _elm_lang$core$Date$fromTime = _elm_lang$core$Native_Date.fromTime;
+var _elm_lang$core$Date$toTime = _elm_lang$core$Native_Date.toTime;
+var _elm_lang$core$Date$fromString = _elm_lang$core$Native_Date.fromString;
+var _elm_lang$core$Date$now = A2(_elm_lang$core$Task$map, _elm_lang$core$Date$fromTime, _elm_lang$core$Time$now);
+var _elm_lang$core$Date$Date = {ctor: 'Date'};
+var _elm_lang$core$Date$Sun = {ctor: 'Sun'};
+var _elm_lang$core$Date$Sat = {ctor: 'Sat'};
+var _elm_lang$core$Date$Fri = {ctor: 'Fri'};
+var _elm_lang$core$Date$Thu = {ctor: 'Thu'};
+var _elm_lang$core$Date$Wed = {ctor: 'Wed'};
+var _elm_lang$core$Date$Tue = {ctor: 'Tue'};
+var _elm_lang$core$Date$Mon = {ctor: 'Mon'};
+var _elm_lang$core$Date$Dec = {ctor: 'Dec'};
+var _elm_lang$core$Date$Nov = {ctor: 'Nov'};
+var _elm_lang$core$Date$Oct = {ctor: 'Oct'};
+var _elm_lang$core$Date$Sep = {ctor: 'Sep'};
+var _elm_lang$core$Date$Aug = {ctor: 'Aug'};
+var _elm_lang$core$Date$Jul = {ctor: 'Jul'};
+var _elm_lang$core$Date$Jun = {ctor: 'Jun'};
+var _elm_lang$core$Date$May = {ctor: 'May'};
+var _elm_lang$core$Date$Apr = {ctor: 'Apr'};
+var _elm_lang$core$Date$Mar = {ctor: 'Mar'};
+var _elm_lang$core$Date$Feb = {ctor: 'Feb'};
+var _elm_lang$core$Date$Jan = {ctor: 'Jan'};
+var _elm_tools$parser_primitives$Native_ParserPrimitives = function() {
+
+
+// STRINGS
+
+function isSubString(smallString, offset, row, col, bigString)
+{
+	var smallLength = smallString.length;
+	var bigLength = bigString.length - offset;
+
+	if (bigLength < smallLength)
+	{
+		return tuple3(-1, row, col);
+	}
+
+	for (var i = 0; i < smallLength; i++)
+	{
+		var char = smallString[i];
+
+		if (char !== bigString[offset + i])
+		{
+			return tuple3(-1, row, col);
 		}
-	};
-	var longString = A2(_elm_lang$core$String$repeat, 100, 'abcdefgh');
+
+		// if it is a two word character
+		if ((bigString.charCodeAt(offset) & 0xF800) === 0xD800)
+		{
+			i++
+			if (smallString[i] !== bigString[offset + i])
+			{
+				return tuple3(-1, row, col);
+			}
+			col++;
+			continue;
+		}
+
+		// if it is a newline
+		if (char === '\n')
+		{
+			row++;
+			col = 1;
+			continue;
+		}
+
+		// if it is a one word character
+		col++
+	}
+
+	return tuple3(offset + smallLength, row, col);
+}
+
+function tuple3(a, b, c)
+{
+	return { ctor: '_Tuple3', _0: a, _1: b, _2: c };
+}
+
+
+// CHARS
+
+var mkChar = _elm_lang$core$Native_Utils.chr;
+
+function isSubChar(predicate, offset, string)
+{
+	if (offset >= string.length)
+	{
+		return -1;
+	}
+
+	if ((string.charCodeAt(offset) & 0xF800) === 0xD800)
+	{
+		return predicate(mkChar(string.substr(offset, 2)))
+			? offset + 2
+			: -1;
+	}
+
+	var char = string[offset];
+
+	return predicate(mkChar(char))
+		? ((char === '\n') ? -2 : (offset + 1))
+		: -1;
+}
+
+
+// FIND STRING
+
+function findSubString(before, smallString, offset, row, col, bigString)
+{
+	var newOffset = bigString.indexOf(smallString, offset);
+
+	if (newOffset === -1)
+	{
+		return tuple3(-1, row, col);
+	}
+
+	var scanTarget = before ? newOffset	: newOffset + smallString.length;
+
+	while (offset < scanTarget)
+	{
+		var char = bigString[offset];
+
+		if (char === '\n')
+		{
+			offset++;
+			row++;
+			col = 1;
+			continue;
+		}
+
+		if ((bigString.charCodeAt(offset) & 0xF800) === 0xD800)
+		{
+			offset += 2;
+			col++;
+			continue;
+		}
+
+		offset++;
+		col++;
+	}
+
+	return tuple3(offset, row, col);
+}
+
+
+return {
+	isSubString: F5(isSubString),
+	isSubChar: F3(isSubChar),
+	findSubString: F6(findSubString)
+};
+
+}();
+var _elm_tools$parser_primitives$ParserPrimitives$findSubString = _elm_tools$parser_primitives$Native_ParserPrimitives.findSubString;
+var _elm_tools$parser_primitives$ParserPrimitives$isSubChar = _elm_tools$parser_primitives$Native_ParserPrimitives.isSubChar;
+var _elm_tools$parser_primitives$ParserPrimitives$isSubString = _elm_tools$parser_primitives$Native_ParserPrimitives.isSubString;
+var _elm_tools$parser$Parser_Internal$isPlusOrMinus = function ($char) {
+	return _elm_lang$core$Native_Utils.eq(
+		$char,
+		_elm_lang$core$Native_Utils.chr('+')) || _elm_lang$core$Native_Utils.eq(
+		$char,
+		_elm_lang$core$Native_Utils.chr('-'));
+};
+var _elm_tools$parser$Parser_Internal$isZero = function ($char) {
+	return _elm_lang$core$Native_Utils.eq(
+		$char,
+		_elm_lang$core$Native_Utils.chr('0'));
+};
+var _elm_tools$parser$Parser_Internal$isE = function ($char) {
+	return _elm_lang$core$Native_Utils.eq(
+		$char,
+		_elm_lang$core$Native_Utils.chr('e')) || _elm_lang$core$Native_Utils.eq(
+		$char,
+		_elm_lang$core$Native_Utils.chr('E'));
+};
+var _elm_tools$parser$Parser_Internal$isDot = function ($char) {
+	return _elm_lang$core$Native_Utils.eq(
+		$char,
+		_elm_lang$core$Native_Utils.chr('.'));
+};
+var _elm_tools$parser$Parser_Internal$isBadIntEnd = function ($char) {
+	return _elm_lang$core$Char$isDigit($char) || (_elm_lang$core$Char$isUpper($char) || (_elm_lang$core$Char$isLower($char) || _elm_lang$core$Native_Utils.eq(
+		$char,
+		_elm_lang$core$Native_Utils.chr('.'))));
+};
+var _elm_tools$parser$Parser_Internal$chomp = F3(
+	function (isGood, offset, source) {
+		chomp:
+		while (true) {
+			var newOffset = A3(_elm_tools$parser_primitives$ParserPrimitives$isSubChar, isGood, offset, source);
+			if (_elm_lang$core$Native_Utils.cmp(newOffset, 0) < 0) {
+				return offset;
+			} else {
+				var _v0 = isGood,
+					_v1 = newOffset,
+					_v2 = source;
+				isGood = _v0;
+				offset = _v1;
+				source = _v2;
+				continue chomp;
+			}
+		}
+	});
+var _elm_tools$parser$Parser_Internal$chompDigits = F3(
+	function (isValidDigit, offset, source) {
+		var newOffset = A3(_elm_tools$parser$Parser_Internal$chomp, isValidDigit, offset, source);
+		return _elm_lang$core$Native_Utils.eq(newOffset, offset) ? _elm_lang$core$Result$Err(newOffset) : ((!_elm_lang$core$Native_Utils.eq(
+			A3(_elm_tools$parser_primitives$ParserPrimitives$isSubChar, _elm_tools$parser$Parser_Internal$isBadIntEnd, newOffset, source),
+			-1)) ? _elm_lang$core$Result$Err(newOffset) : _elm_lang$core$Result$Ok(newOffset));
+	});
+var _elm_tools$parser$Parser_Internal$chompExp = F2(
+	function (offset, source) {
+		var eOffset = A3(_elm_tools$parser_primitives$ParserPrimitives$isSubChar, _elm_tools$parser$Parser_Internal$isE, offset, source);
+		if (_elm_lang$core$Native_Utils.eq(eOffset, -1)) {
+			return _elm_lang$core$Result$Ok(offset);
+		} else {
+			var opOffset = A3(_elm_tools$parser_primitives$ParserPrimitives$isSubChar, _elm_tools$parser$Parser_Internal$isPlusOrMinus, eOffset, source);
+			var expOffset = _elm_lang$core$Native_Utils.eq(opOffset, -1) ? eOffset : opOffset;
+			return (!_elm_lang$core$Native_Utils.eq(
+				A3(_elm_tools$parser_primitives$ParserPrimitives$isSubChar, _elm_tools$parser$Parser_Internal$isZero, expOffset, source),
+				-1)) ? _elm_lang$core$Result$Err(expOffset) : (_elm_lang$core$Native_Utils.eq(
+				A3(_elm_tools$parser_primitives$ParserPrimitives$isSubChar, _elm_lang$core$Char$isDigit, expOffset, source),
+				-1) ? _elm_lang$core$Result$Err(expOffset) : A3(_elm_tools$parser$Parser_Internal$chompDigits, _elm_lang$core$Char$isDigit, expOffset, source));
+		}
+	});
+var _elm_tools$parser$Parser_Internal$chompDotAndExp = F2(
+	function (offset, source) {
+		var dotOffset = A3(_elm_tools$parser_primitives$ParserPrimitives$isSubChar, _elm_tools$parser$Parser_Internal$isDot, offset, source);
+		return _elm_lang$core$Native_Utils.eq(dotOffset, -1) ? A2(_elm_tools$parser$Parser_Internal$chompExp, offset, source) : A2(
+			_elm_tools$parser$Parser_Internal$chompExp,
+			A3(_elm_tools$parser$Parser_Internal$chomp, _elm_lang$core$Char$isDigit, dotOffset, source),
+			source);
+	});
+var _elm_tools$parser$Parser_Internal$State = F6(
+	function (a, b, c, d, e, f) {
+		return {source: a, offset: b, indent: c, context: d, row: e, col: f};
+	});
+var _elm_tools$parser$Parser_Internal$Parser = function (a) {
+	return {ctor: 'Parser', _0: a};
+};
+var _elm_tools$parser$Parser_Internal$Bad = F2(
+	function (a, b) {
+		return {ctor: 'Bad', _0: a, _1: b};
+	});
+var _elm_tools$parser$Parser_Internal$Good = F2(
+	function (a, b) {
+		return {ctor: 'Good', _0: a, _1: b};
+	});
+var _elm_tools$parser$Parser$changeContext = F2(
+	function (newContext, _p0) {
+		var _p1 = _p0;
+		return {source: _p1.source, offset: _p1.offset, indent: _p1.indent, context: newContext, row: _p1.row, col: _p1.col};
+	});
+var _elm_tools$parser$Parser$sourceMap = F2(
+	function (func, _p2) {
+		var _p3 = _p2;
+		return _elm_tools$parser$Parser_Internal$Parser(
+			function (_p4) {
+				var _p5 = _p4;
+				var _p6 = _p3._0(_p5);
+				if (_p6.ctor === 'Bad') {
+					return A2(_elm_tools$parser$Parser_Internal$Bad, _p6._0, _p6._1);
+				} else {
+					var _p7 = _p6._1;
+					var subString = A3(_elm_lang$core$String$slice, _p5.offset, _p7.offset, _p5.source);
+					return A2(
+						_elm_tools$parser$Parser_Internal$Good,
+						A2(func, subString, _p6._0),
+						_p7);
+				}
+			});
+	});
+var _elm_tools$parser$Parser$source = function (parser) {
+	return A2(_elm_tools$parser$Parser$sourceMap, _elm_lang$core$Basics$always, parser);
+};
+var _elm_tools$parser$Parser$badFloatMsg = 'The `Parser.float` parser seems to have a bug.\nPlease report an SSCCE to <https://github.com/elm-tools/parser/issues>.';
+var _elm_tools$parser$Parser$floatHelp = F3(
+	function (offset, zeroOffset, source) {
+		if (_elm_lang$core$Native_Utils.cmp(zeroOffset, 0) > -1) {
+			return A2(_elm_tools$parser$Parser_Internal$chompDotAndExp, zeroOffset, source);
+		} else {
+			var dotOffset = A3(_elm_tools$parser$Parser_Internal$chomp, _elm_lang$core$Char$isDigit, offset, source);
+			var result = A2(_elm_tools$parser$Parser_Internal$chompDotAndExp, dotOffset, source);
+			var _p8 = result;
+			if (_p8.ctor === 'Err') {
+				return result;
+			} else {
+				var _p9 = _p8._0;
+				return _elm_lang$core$Native_Utils.eq(_p9, offset) ? _elm_lang$core$Result$Err(_p9) : result;
+			}
+		}
+	});
+var _elm_tools$parser$Parser$badIntMsg = 'The `Parser.int` parser seems to have a bug.\nPlease report an SSCCE to <https://github.com/elm-tools/parser/issues>.';
+var _elm_tools$parser$Parser$isX = function ($char) {
+	return _elm_lang$core$Native_Utils.eq(
+		$char,
+		_elm_lang$core$Native_Utils.chr('x'));
+};
+var _elm_tools$parser$Parser$isO = function ($char) {
+	return _elm_lang$core$Native_Utils.eq(
+		$char,
+		_elm_lang$core$Native_Utils.chr('o'));
+};
+var _elm_tools$parser$Parser$isZero = function ($char) {
+	return _elm_lang$core$Native_Utils.eq(
+		$char,
+		_elm_lang$core$Native_Utils.chr('0'));
+};
+var _elm_tools$parser$Parser$intHelp = F3(
+	function (offset, zeroOffset, source) {
+		return _elm_lang$core$Native_Utils.eq(zeroOffset, -1) ? A3(_elm_tools$parser$Parser_Internal$chompDigits, _elm_lang$core$Char$isDigit, offset, source) : ((!_elm_lang$core$Native_Utils.eq(
+			A3(_elm_tools$parser_primitives$ParserPrimitives$isSubChar, _elm_tools$parser$Parser$isX, zeroOffset, source),
+			-1)) ? A3(_elm_tools$parser$Parser_Internal$chompDigits, _elm_lang$core$Char$isHexDigit, offset + 2, source) : (_elm_lang$core$Native_Utils.eq(
+			A3(_elm_tools$parser_primitives$ParserPrimitives$isSubChar, _elm_tools$parser$Parser_Internal$isBadIntEnd, zeroOffset, source),
+			-1) ? _elm_lang$core$Result$Ok(zeroOffset) : _elm_lang$core$Result$Err(zeroOffset)));
+	});
+var _elm_tools$parser$Parser$token = F2(
+	function (makeProblem, str) {
+		return _elm_tools$parser$Parser_Internal$Parser(
+			function (_p10) {
+				var _p11 = _p10;
+				var _p13 = _p11.source;
+				var _p12 = A5(_elm_tools$parser_primitives$ParserPrimitives$isSubString, str, _p11.offset, _p11.row, _p11.col, _p13);
+				var newOffset = _p12._0;
+				var newRow = _p12._1;
+				var newCol = _p12._2;
+				return _elm_lang$core$Native_Utils.eq(newOffset, -1) ? A2(
+					_elm_tools$parser$Parser_Internal$Bad,
+					makeProblem(str),
+					_p11) : A2(
+					_elm_tools$parser$Parser_Internal$Good,
+					{ctor: '_Tuple0'},
+					{source: _p13, offset: newOffset, indent: _p11.indent, context: _p11.context, row: newRow, col: newCol});
+			});
+	});
+var _elm_tools$parser$Parser$delayedCommitMap = F3(
+	function (func, _p15, _p14) {
+		var _p16 = _p15;
+		var _p17 = _p14;
+		return _elm_tools$parser$Parser_Internal$Parser(
+			function (state1) {
+				var _p18 = _p16._0(state1);
+				if (_p18.ctor === 'Bad') {
+					return A2(_elm_tools$parser$Parser_Internal$Bad, _p18._0, state1);
+				} else {
+					var _p22 = _p18._1;
+					var _p19 = _p17._0(_p22);
+					if (_p19.ctor === 'Good') {
+						return A2(
+							_elm_tools$parser$Parser_Internal$Good,
+							A2(func, _p18._0, _p19._0),
+							_p19._1);
+					} else {
+						var _p21 = _p19._0;
+						var _p20 = _p19._1;
+						return (_elm_lang$core$Native_Utils.eq(_p22.row, _p20.row) && _elm_lang$core$Native_Utils.eq(_p22.col, _p20.col)) ? A2(_elm_tools$parser$Parser_Internal$Bad, _p21, state1) : A2(_elm_tools$parser$Parser_Internal$Bad, _p21, _p20);
+					}
+				}
+			});
+	});
+var _elm_tools$parser$Parser$delayedCommit = F2(
+	function (filler, realStuff) {
+		return A3(
+			_elm_tools$parser$Parser$delayedCommitMap,
+			F2(
+				function (_p23, v) {
+					return v;
+				}),
+			filler,
+			realStuff);
+	});
+var _elm_tools$parser$Parser$lazy = function (thunk) {
+	return _elm_tools$parser$Parser_Internal$Parser(
+		function (state) {
+			var _p24 = thunk(
+				{ctor: '_Tuple0'});
+			var parse = _p24._0;
+			return parse(state);
+		});
+};
+var _elm_tools$parser$Parser$andThen = F2(
+	function (callback, _p25) {
+		var _p26 = _p25;
+		return _elm_tools$parser$Parser_Internal$Parser(
+			function (state1) {
+				var _p27 = _p26._0(state1);
+				if (_p27.ctor === 'Bad') {
+					return A2(_elm_tools$parser$Parser_Internal$Bad, _p27._0, _p27._1);
+				} else {
+					var _p28 = callback(_p27._0);
+					var parseB = _p28._0;
+					return parseB(_p27._1);
+				}
+			});
+	});
+var _elm_tools$parser$Parser$apply = F2(
+	function (f, a) {
+		return f(a);
+	});
+var _elm_tools$parser$Parser$map2 = F3(
+	function (func, _p30, _p29) {
+		var _p31 = _p30;
+		var _p32 = _p29;
+		return _elm_tools$parser$Parser_Internal$Parser(
+			function (state1) {
+				var _p33 = _p31._0(state1);
+				if (_p33.ctor === 'Bad') {
+					return A2(_elm_tools$parser$Parser_Internal$Bad, _p33._0, _p33._1);
+				} else {
+					var _p34 = _p32._0(_p33._1);
+					if (_p34.ctor === 'Bad') {
+						return A2(_elm_tools$parser$Parser_Internal$Bad, _p34._0, _p34._1);
+					} else {
+						return A2(
+							_elm_tools$parser$Parser_Internal$Good,
+							A2(func, _p33._0, _p34._0),
+							_p34._1);
+					}
+				}
+			});
+	});
+var _elm_tools$parser$Parser_ops = _elm_tools$parser$Parser_ops || {};
+_elm_tools$parser$Parser_ops['|='] = F2(
+	function (parseFunc, parseArg) {
+		return A3(_elm_tools$parser$Parser$map2, _elm_tools$parser$Parser$apply, parseFunc, parseArg);
+	});
+var _elm_tools$parser$Parser_ops = _elm_tools$parser$Parser_ops || {};
+_elm_tools$parser$Parser_ops['|.'] = F2(
+	function (keepParser, ignoreParser) {
+		return A3(_elm_tools$parser$Parser$map2, _elm_lang$core$Basics$always, keepParser, ignoreParser);
+	});
+var _elm_tools$parser$Parser$map = F2(
+	function (func, _p35) {
+		var _p36 = _p35;
+		return _elm_tools$parser$Parser_Internal$Parser(
+			function (state1) {
+				var _p37 = _p36._0(state1);
+				if (_p37.ctor === 'Good') {
+					return A2(
+						_elm_tools$parser$Parser_Internal$Good,
+						func(_p37._0),
+						_p37._1);
+				} else {
+					return A2(_elm_tools$parser$Parser_Internal$Bad, _p37._0, _p37._1);
+				}
+			});
+	});
+var _elm_tools$parser$Parser$succeed = function (a) {
+	return _elm_tools$parser$Parser_Internal$Parser(
+		function (state) {
+			return A2(_elm_tools$parser$Parser_Internal$Good, a, state);
+		});
+};
+var _elm_tools$parser$Parser$run = F2(
+	function (_p38, source) {
+		var _p39 = _p38;
+		var initialState = {
+			source: source,
+			offset: 0,
+			indent: 1,
+			context: {ctor: '[]'},
+			row: 1,
+			col: 1
+		};
+		var _p40 = _p39._0(initialState);
+		if (_p40.ctor === 'Good') {
+			return _elm_lang$core$Result$Ok(_p40._0);
+		} else {
+			return _elm_lang$core$Result$Err(
+				{row: _p40._1.row, col: _p40._1.col, source: source, problem: _p40._0, context: _p40._1.context});
+		}
+	});
+var _elm_tools$parser$Parser$Error = F5(
+	function (a, b, c, d, e) {
+		return {row: a, col: b, source: c, problem: d, context: e};
+	});
+var _elm_tools$parser$Parser$Context = F3(
+	function (a, b, c) {
+		return {row: a, col: b, description: c};
+	});
+var _elm_tools$parser$Parser$inContext = F2(
+	function (ctx, _p41) {
+		var _p42 = _p41;
+		return _elm_tools$parser$Parser_Internal$Parser(
+			function (_p43) {
+				var _p44 = _p43;
+				var _p46 = _p44.context;
+				var state1 = A2(
+					_elm_tools$parser$Parser$changeContext,
+					{
+						ctor: '::',
+						_0: A3(_elm_tools$parser$Parser$Context, _p44.row, _p44.col, ctx),
+						_1: _p46
+					},
+					_p44);
+				var _p45 = _p42._0(state1);
+				if (_p45.ctor === 'Good') {
+					return A2(
+						_elm_tools$parser$Parser_Internal$Good,
+						_p45._0,
+						A2(_elm_tools$parser$Parser$changeContext, _p46, _p45._1));
+				} else {
+					return _p45;
+				}
+			});
+	});
+var _elm_tools$parser$Parser$Fail = function (a) {
+	return {ctor: 'Fail', _0: a};
+};
+var _elm_tools$parser$Parser$fail = function (message) {
+	return _elm_tools$parser$Parser_Internal$Parser(
+		function (state) {
+			return A2(
+				_elm_tools$parser$Parser_Internal$Bad,
+				_elm_tools$parser$Parser$Fail(message),
+				state);
+		});
+};
+var _elm_tools$parser$Parser$ExpectingClosing = function (a) {
+	return {ctor: 'ExpectingClosing', _0: a};
+};
+var _elm_tools$parser$Parser$ignoreUntil = function (str) {
+	return _elm_tools$parser$Parser_Internal$Parser(
+		function (_p47) {
+			var _p48 = _p47;
+			var _p50 = _p48.source;
+			var _p49 = A6(_elm_tools$parser_primitives$ParserPrimitives$findSubString, false, str, _p48.offset, _p48.row, _p48.col, _p50);
+			var newOffset = _p49._0;
+			var newRow = _p49._1;
+			var newCol = _p49._2;
+			return _elm_lang$core$Native_Utils.eq(newOffset, -1) ? A2(
+				_elm_tools$parser$Parser_Internal$Bad,
+				_elm_tools$parser$Parser$ExpectingClosing(str),
+				_p48) : A2(
+				_elm_tools$parser$Parser_Internal$Good,
+				{ctor: '_Tuple0'},
+				{source: _p50, offset: newOffset, indent: _p48.indent, context: _p48.context, row: newRow, col: newCol});
+		});
+};
+var _elm_tools$parser$Parser$ExpectingVariable = {ctor: 'ExpectingVariable'};
+var _elm_tools$parser$Parser$ExpectingKeyword = function (a) {
+	return {ctor: 'ExpectingKeyword', _0: a};
+};
+var _elm_tools$parser$Parser$keyword = function (str) {
+	return A2(_elm_tools$parser$Parser$token, _elm_tools$parser$Parser$ExpectingKeyword, str);
+};
+var _elm_tools$parser$Parser$ExpectingSymbol = function (a) {
+	return {ctor: 'ExpectingSymbol', _0: a};
+};
+var _elm_tools$parser$Parser$symbol = function (str) {
+	return A2(_elm_tools$parser$Parser$token, _elm_tools$parser$Parser$ExpectingSymbol, str);
+};
+var _elm_tools$parser$Parser$ExpectingEnd = {ctor: 'ExpectingEnd'};
+var _elm_tools$parser$Parser$end = _elm_tools$parser$Parser_Internal$Parser(
+	function (state) {
+		return _elm_lang$core$Native_Utils.eq(
+			_elm_lang$core$String$length(state.source),
+			state.offset) ? A2(
+			_elm_tools$parser$Parser_Internal$Good,
+			{ctor: '_Tuple0'},
+			state) : A2(_elm_tools$parser$Parser_Internal$Bad, _elm_tools$parser$Parser$ExpectingEnd, state);
+	});
+var _elm_tools$parser$Parser$BadRepeat = {ctor: 'BadRepeat'};
+var _elm_tools$parser$Parser$repeatExactly = F4(
+	function (n, parse, revList, state1) {
+		repeatExactly:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(n, 0) < 1) {
+				return A2(
+					_elm_tools$parser$Parser_Internal$Good,
+					_elm_lang$core$List$reverse(revList),
+					state1);
+			} else {
+				var _p51 = parse(state1);
+				if (_p51.ctor === 'Good') {
+					var _p52 = _p51._1;
+					if (_elm_lang$core$Native_Utils.eq(state1.row, _p52.row) && _elm_lang$core$Native_Utils.eq(state1.col, _p52.col)) {
+						return A2(_elm_tools$parser$Parser_Internal$Bad, _elm_tools$parser$Parser$BadRepeat, _p52);
+					} else {
+						var _v25 = n - 1,
+							_v26 = parse,
+							_v27 = {ctor: '::', _0: _p51._0, _1: revList},
+							_v28 = _p52;
+						n = _v25;
+						parse = _v26;
+						revList = _v27;
+						state1 = _v28;
+						continue repeatExactly;
+					}
+				} else {
+					return A2(_elm_tools$parser$Parser_Internal$Bad, _p51._0, _p51._1);
+				}
+			}
+		}
+	});
+var _elm_tools$parser$Parser$repeatAtLeast = F4(
+	function (n, parse, revList, state1) {
+		repeatAtLeast:
+		while (true) {
+			var _p53 = parse(state1);
+			if (_p53.ctor === 'Good') {
+				var _p54 = _p53._1;
+				if (_elm_lang$core$Native_Utils.eq(state1.row, _p54.row) && _elm_lang$core$Native_Utils.eq(state1.col, _p54.col)) {
+					return A2(_elm_tools$parser$Parser_Internal$Bad, _elm_tools$parser$Parser$BadRepeat, _p54);
+				} else {
+					var _v30 = n - 1,
+						_v31 = parse,
+						_v32 = {ctor: '::', _0: _p53._0, _1: revList},
+						_v33 = _p54;
+					n = _v30;
+					parse = _v31;
+					revList = _v32;
+					state1 = _v33;
+					continue repeatAtLeast;
+				}
+			} else {
+				var _p55 = _p53._1;
+				return (_elm_lang$core$Native_Utils.eq(state1.row, _p55.row) && (_elm_lang$core$Native_Utils.eq(state1.col, _p55.col) && (_elm_lang$core$Native_Utils.cmp(n, 0) < 1))) ? A2(
+					_elm_tools$parser$Parser_Internal$Good,
+					_elm_lang$core$List$reverse(revList),
+					state1) : A2(_elm_tools$parser$Parser_Internal$Bad, _p53._0, _p55);
+			}
+		}
+	});
+var _elm_tools$parser$Parser$repeat = F2(
+	function (count, _p56) {
+		var _p57 = _p56;
+		var _p59 = _p57._0;
+		var _p58 = count;
+		if (_p58.ctor === 'Exactly') {
+			return _elm_tools$parser$Parser_Internal$Parser(
+				function (state) {
+					return A4(
+						_elm_tools$parser$Parser$repeatExactly,
+						_p58._0,
+						_p59,
+						{ctor: '[]'},
+						state);
+				});
+		} else {
+			return _elm_tools$parser$Parser_Internal$Parser(
+				function (state) {
+					return A4(
+						_elm_tools$parser$Parser$repeatAtLeast,
+						_p58._0,
+						_p59,
+						{ctor: '[]'},
+						state);
+				});
+		}
+	});
+var _elm_tools$parser$Parser$ignoreExactly = F8(
+	function (n, predicate, source, offset, indent, context, row, col) {
+		ignoreExactly:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(n, 0) < 1) {
+				return A2(
+					_elm_tools$parser$Parser_Internal$Good,
+					{ctor: '_Tuple0'},
+					{source: source, offset: offset, indent: indent, context: context, row: row, col: col});
+			} else {
+				var newOffset = A3(_elm_tools$parser_primitives$ParserPrimitives$isSubChar, predicate, offset, source);
+				if (_elm_lang$core$Native_Utils.eq(newOffset, -1)) {
+					return A2(
+						_elm_tools$parser$Parser_Internal$Bad,
+						_elm_tools$parser$Parser$BadRepeat,
+						{source: source, offset: offset, indent: indent, context: context, row: row, col: col});
+				} else {
+					if (_elm_lang$core$Native_Utils.eq(newOffset, -2)) {
+						var _v36 = n - 1,
+							_v37 = predicate,
+							_v38 = source,
+							_v39 = offset + 1,
+							_v40 = indent,
+							_v41 = context,
+							_v42 = row + 1,
+							_v43 = 1;
+						n = _v36;
+						predicate = _v37;
+						source = _v38;
+						offset = _v39;
+						indent = _v40;
+						context = _v41;
+						row = _v42;
+						col = _v43;
+						continue ignoreExactly;
+					} else {
+						var _v44 = n - 1,
+							_v45 = predicate,
+							_v46 = source,
+							_v47 = newOffset,
+							_v48 = indent,
+							_v49 = context,
+							_v50 = row,
+							_v51 = col + 1;
+						n = _v44;
+						predicate = _v45;
+						source = _v46;
+						offset = _v47;
+						indent = _v48;
+						context = _v49;
+						row = _v50;
+						col = _v51;
+						continue ignoreExactly;
+					}
+				}
+			}
+		}
+	});
+var _elm_tools$parser$Parser$ignoreAtLeast = F8(
+	function (n, predicate, source, offset, indent, context, row, col) {
+		ignoreAtLeast:
+		while (true) {
+			var newOffset = A3(_elm_tools$parser_primitives$ParserPrimitives$isSubChar, predicate, offset, source);
+			if (_elm_lang$core$Native_Utils.eq(newOffset, -1)) {
+				var state = {source: source, offset: offset, indent: indent, context: context, row: row, col: col};
+				return (_elm_lang$core$Native_Utils.cmp(n, 0) < 1) ? A2(
+					_elm_tools$parser$Parser_Internal$Good,
+					{ctor: '_Tuple0'},
+					state) : A2(_elm_tools$parser$Parser_Internal$Bad, _elm_tools$parser$Parser$BadRepeat, state);
+			} else {
+				if (_elm_lang$core$Native_Utils.eq(newOffset, -2)) {
+					var _v52 = n - 1,
+						_v53 = predicate,
+						_v54 = source,
+						_v55 = offset + 1,
+						_v56 = indent,
+						_v57 = context,
+						_v58 = row + 1,
+						_v59 = 1;
+					n = _v52;
+					predicate = _v53;
+					source = _v54;
+					offset = _v55;
+					indent = _v56;
+					context = _v57;
+					row = _v58;
+					col = _v59;
+					continue ignoreAtLeast;
+				} else {
+					var _v60 = n - 1,
+						_v61 = predicate,
+						_v62 = source,
+						_v63 = newOffset,
+						_v64 = indent,
+						_v65 = context,
+						_v66 = row,
+						_v67 = col + 1;
+					n = _v60;
+					predicate = _v61;
+					source = _v62;
+					offset = _v63;
+					indent = _v64;
+					context = _v65;
+					row = _v66;
+					col = _v67;
+					continue ignoreAtLeast;
+				}
+			}
+		}
+	});
+var _elm_tools$parser$Parser$ignore = F2(
+	function (count, predicate) {
+		var _p60 = count;
+		if (_p60.ctor === 'Exactly') {
+			return _elm_tools$parser$Parser_Internal$Parser(
+				function (_p61) {
+					var _p62 = _p61;
+					return A8(_elm_tools$parser$Parser$ignoreExactly, _p60._0, predicate, _p62.source, _p62.offset, _p62.indent, _p62.context, _p62.row, _p62.col);
+				});
+		} else {
+			return _elm_tools$parser$Parser_Internal$Parser(
+				function (_p63) {
+					var _p64 = _p63;
+					return A8(_elm_tools$parser$Parser$ignoreAtLeast, _p60._0, predicate, _p64.source, _p64.offset, _p64.indent, _p64.context, _p64.row, _p64.col);
+				});
+		}
+	});
+var _elm_tools$parser$Parser$keep = F2(
+	function (count, predicate) {
+		return _elm_tools$parser$Parser$source(
+			A2(_elm_tools$parser$Parser$ignore, count, predicate));
+	});
+var _elm_tools$parser$Parser$BadFloat = {ctor: 'BadFloat'};
+var _elm_tools$parser$Parser$float = _elm_tools$parser$Parser_Internal$Parser(
+	function (_p65) {
+		var _p66 = _p65;
+		var _p77 = _p66.source;
+		var _p76 = _p66.row;
+		var _p75 = _p66.offset;
+		var _p74 = _p66.indent;
+		var _p73 = _p66.context;
+		var _p72 = _p66.col;
+		var _p67 = A3(
+			_elm_tools$parser$Parser$floatHelp,
+			_p75,
+			A3(_elm_tools$parser_primitives$ParserPrimitives$isSubChar, _elm_tools$parser$Parser$isZero, _p75, _p77),
+			_p77);
+		if (_p67.ctor === 'Err') {
+			var _p68 = _p67._0;
+			return A2(
+				_elm_tools$parser$Parser_Internal$Bad,
+				_elm_tools$parser$Parser$BadFloat,
+				{source: _p77, offset: _p68, indent: _p74, context: _p73, row: _p76, col: _p72 + (_p68 - _p75)});
+		} else {
+			var _p71 = _p67._0;
+			var _p69 = _elm_lang$core$String$toFloat(
+				A3(_elm_lang$core$String$slice, _p75, _p71, _p77));
+			if (_p69.ctor === 'Err') {
+				return _elm_lang$core$Native_Utils.crashCase(
+					'Parser',
+					{
+						start: {line: 733, column: 9},
+						end: {line: 745, column: 16}
+					},
+					_p69)(_elm_tools$parser$Parser$badFloatMsg);
+			} else {
+				return A2(
+					_elm_tools$parser$Parser_Internal$Good,
+					_p69._0,
+					{source: _p77, offset: _p71, indent: _p74, context: _p73, row: _p76, col: _p72 + (_p71 - _p75)});
+			}
+		}
+	});
+var _elm_tools$parser$Parser$BadInt = {ctor: 'BadInt'};
+var _elm_tools$parser$Parser$int = _elm_tools$parser$Parser_Internal$Parser(
+	function (_p78) {
+		var _p79 = _p78;
+		var _p90 = _p79.source;
+		var _p89 = _p79.row;
+		var _p88 = _p79.offset;
+		var _p87 = _p79.indent;
+		var _p86 = _p79.context;
+		var _p85 = _p79.col;
+		var _p80 = A3(
+			_elm_tools$parser$Parser$intHelp,
+			_p88,
+			A3(_elm_tools$parser_primitives$ParserPrimitives$isSubChar, _elm_tools$parser$Parser$isZero, _p88, _p90),
+			_p90);
+		if (_p80.ctor === 'Err') {
+			var _p81 = _p80._0;
+			return A2(
+				_elm_tools$parser$Parser_Internal$Bad,
+				_elm_tools$parser$Parser$BadInt,
+				{source: _p90, offset: _p81, indent: _p87, context: _p86, row: _p89, col: _p85 + (_p81 - _p88)});
+		} else {
+			var _p84 = _p80._0;
+			var _p82 = _elm_lang$core$String$toInt(
+				A3(_elm_lang$core$String$slice, _p88, _p84, _p90));
+			if (_p82.ctor === 'Err') {
+				return _elm_lang$core$Native_Utils.crashCase(
+					'Parser',
+					{
+						start: {line: 638, column: 9},
+						end: {line: 650, column: 16}
+					},
+					_p82)(_elm_tools$parser$Parser$badIntMsg);
+			} else {
+				return A2(
+					_elm_tools$parser$Parser_Internal$Good,
+					_p82._0,
+					{source: _p90, offset: _p84, indent: _p87, context: _p86, row: _p89, col: _p85 + (_p84 - _p88)});
+			}
+		}
+	});
+var _elm_tools$parser$Parser$BadOneOf = function (a) {
+	return {ctor: 'BadOneOf', _0: a};
+};
+var _elm_tools$parser$Parser$oneOfHelp = F3(
+	function (state, problems, parsers) {
+		oneOfHelp:
+		while (true) {
+			var _p91 = parsers;
+			if (_p91.ctor === '[]') {
+				return A2(
+					_elm_tools$parser$Parser_Internal$Bad,
+					_elm_tools$parser$Parser$BadOneOf(
+						_elm_lang$core$List$reverse(problems)),
+					state);
+			} else {
+				var _p92 = _p91._0._0(state);
+				if (_p92.ctor === 'Good') {
+					return _p92;
+				} else {
+					if (_elm_lang$core$Native_Utils.eq(state.row, _p92._1.row) && _elm_lang$core$Native_Utils.eq(state.col, _p92._1.col)) {
+						var _v79 = state,
+							_v80 = {ctor: '::', _0: _p92._0, _1: problems},
+							_v81 = _p91._1;
+						state = _v79;
+						problems = _v80;
+						parsers = _v81;
+						continue oneOfHelp;
+					} else {
+						return _p92;
+					}
+				}
+			}
+		}
+	});
+var _elm_tools$parser$Parser$oneOf = function (parsers) {
+	return _elm_tools$parser$Parser_Internal$Parser(
+		function (state) {
+			return A3(
+				_elm_tools$parser$Parser$oneOfHelp,
+				state,
+				{ctor: '[]'},
+				parsers);
+		});
+};
+var _elm_tools$parser$Parser$Exactly = function (a) {
+	return {ctor: 'Exactly', _0: a};
+};
+var _elm_tools$parser$Parser$AtLeast = function (a) {
+	return {ctor: 'AtLeast', _0: a};
+};
+var _elm_tools$parser$Parser$zeroOrMore = _elm_tools$parser$Parser$AtLeast(0);
+var _elm_tools$parser$Parser$oneOrMore = _elm_tools$parser$Parser$AtLeast(1);
+var _rtfeldman$hex$Hex$toString = function (num) {
+	return _elm_lang$core$String$fromList(
+		(_elm_lang$core$Native_Utils.cmp(num, 0) < 0) ? {
+			ctor: '::',
+			_0: _elm_lang$core$Native_Utils.chr('-'),
+			_1: A2(
+				_rtfeldman$hex$Hex$unsafePositiveToDigits,
+				{ctor: '[]'},
+				_elm_lang$core$Basics$negate(num))
+		} : A2(
+			_rtfeldman$hex$Hex$unsafePositiveToDigits,
+			{ctor: '[]'},
+			num));
+};
+var _rtfeldman$hex$Hex$unsafePositiveToDigits = F2(
+	function (digits, num) {
+		unsafePositiveToDigits:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(num, 16) < 0) {
+				return {
+					ctor: '::',
+					_0: _rtfeldman$hex$Hex$unsafeToDigit(num),
+					_1: digits
+				};
+			} else {
+				var _v0 = {
+					ctor: '::',
+					_0: _rtfeldman$hex$Hex$unsafeToDigit(
+						A2(_elm_lang$core$Basics_ops['%'], num, 16)),
+					_1: digits
+				},
+					_v1 = (num / 16) | 0;
+				digits = _v0;
+				num = _v1;
+				continue unsafePositiveToDigits;
+			}
+		}
+	});
+var _rtfeldman$hex$Hex$unsafeToDigit = function (num) {
+	var _p0 = num;
+	switch (_p0) {
+		case 0:
+			return _elm_lang$core$Native_Utils.chr('0');
+		case 1:
+			return _elm_lang$core$Native_Utils.chr('1');
+		case 2:
+			return _elm_lang$core$Native_Utils.chr('2');
+		case 3:
+			return _elm_lang$core$Native_Utils.chr('3');
+		case 4:
+			return _elm_lang$core$Native_Utils.chr('4');
+		case 5:
+			return _elm_lang$core$Native_Utils.chr('5');
+		case 6:
+			return _elm_lang$core$Native_Utils.chr('6');
+		case 7:
+			return _elm_lang$core$Native_Utils.chr('7');
+		case 8:
+			return _elm_lang$core$Native_Utils.chr('8');
+		case 9:
+			return _elm_lang$core$Native_Utils.chr('9');
+		case 10:
+			return _elm_lang$core$Native_Utils.chr('a');
+		case 11:
+			return _elm_lang$core$Native_Utils.chr('b');
+		case 12:
+			return _elm_lang$core$Native_Utils.chr('c');
+		case 13:
+			return _elm_lang$core$Native_Utils.chr('d');
+		case 14:
+			return _elm_lang$core$Native_Utils.chr('e');
+		case 15:
+			return _elm_lang$core$Native_Utils.chr('f');
+		default:
+			return _elm_lang$core$Native_Utils.crashCase(
+				'Hex',
+				{
+					start: {line: 138, column: 5},
+					end: {line: 188, column: 84}
+				},
+				_p0)(
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					'Tried to convert ',
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						_rtfeldman$hex$Hex$toString(num),
+						' to hexadecimal.')));
+	}
+};
+var _rtfeldman$hex$Hex$fromStringHelp = F3(
+	function (position, chars, accumulated) {
+		var _p2 = chars;
+		if (_p2.ctor === '[]') {
+			return _elm_lang$core$Result$Ok(accumulated);
+		} else {
+			var recurse = function (additional) {
+				return A3(
+					_rtfeldman$hex$Hex$fromStringHelp,
+					position - 1,
+					_p2._1,
+					accumulated + (additional * Math.pow(16, position)));
+			};
+			var _p3 = _p2._0;
+			switch (_p3.valueOf()) {
+				case '0':
+					return recurse(0);
+				case '1':
+					return recurse(1);
+				case '2':
+					return recurse(2);
+				case '3':
+					return recurse(3);
+				case '4':
+					return recurse(4);
+				case '5':
+					return recurse(5);
+				case '6':
+					return recurse(6);
+				case '7':
+					return recurse(7);
+				case '8':
+					return recurse(8);
+				case '9':
+					return recurse(9);
+				case 'a':
+					return recurse(10);
+				case 'b':
+					return recurse(11);
+				case 'c':
+					return recurse(12);
+				case 'd':
+					return recurse(13);
+				case 'e':
+					return recurse(14);
+				case 'f':
+					return recurse(15);
+				default:
+					return _elm_lang$core$Result$Err(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							_elm_lang$core$Basics$toString(_p3),
+							' is not a valid hexadecimal character.'));
+			}
+		}
+	});
+var _rtfeldman$hex$Hex$fromString = function (str) {
+	if (_elm_lang$core$String$isEmpty(str)) {
+		return _elm_lang$core$Result$Err('Empty strings are not valid hexadecimal strings.');
+	} else {
+		var formatError = function (err) {
+			return A2(
+				_elm_lang$core$String$join,
+				' ',
+				{
+					ctor: '::',
+					_0: _elm_lang$core$Basics$toString(str),
+					_1: {
+						ctor: '::',
+						_0: 'is not a valid hexadecimal string because',
+						_1: {
+							ctor: '::',
+							_0: err,
+							_1: {ctor: '[]'}
+						}
+					}
+				});
+		};
+		var result = function () {
+			if (A2(_elm_lang$core$String$startsWith, '-', str)) {
+				var list = A2(
+					_elm_lang$core$Maybe$withDefault,
+					{ctor: '[]'},
+					_elm_lang$core$List$tail(
+						_elm_lang$core$String$toList(str)));
+				return A2(
+					_elm_lang$core$Result$map,
+					_elm_lang$core$Basics$negate,
+					A3(
+						_rtfeldman$hex$Hex$fromStringHelp,
+						_elm_lang$core$List$length(list) - 1,
+						list,
+						0));
+			} else {
+				return A3(
+					_rtfeldman$hex$Hex$fromStringHelp,
+					_elm_lang$core$String$length(str) - 1,
+					_elm_lang$core$String$toList(str),
+					0);
+			}
+		}();
+		return A2(_elm_lang$core$Result$mapError, formatError, result);
+	}
+};
+var _jinjor$elm_xml_parser$XmlParser_ops = _jinjor$elm_xml_parser$XmlParser_ops || {};
+_jinjor$elm_xml_parser$XmlParser_ops['=>'] = F2(
+	function (v0, v1) {
+		return {ctor: '_Tuple2', _0: v0, _1: v1};
+	});
+var _jinjor$elm_xml_parser$XmlParser$maybe = function (parser) {
+	return _elm_tools$parser$Parser$oneOf(
+		{
+			ctor: '::',
+			_0: A2(_elm_tools$parser$Parser$map, _elm_lang$core$Maybe$Just, parser),
+			_1: {
+				ctor: '::',
+				_0: _elm_tools$parser$Parser$succeed(_elm_lang$core$Maybe$Nothing),
+				_1: {ctor: '[]'}
+			}
+		});
+};
+var _jinjor$elm_xml_parser$XmlParser$escape = function (s) {
+	return A4(
+		_elm_lang$core$Regex$replace,
+		_elm_lang$core$Regex$All,
+		_elm_lang$core$Regex$regex('\''),
+		function (_p0) {
+			return '&apos;';
+		},
+		A4(
+			_elm_lang$core$Regex$replace,
+			_elm_lang$core$Regex$All,
+			_elm_lang$core$Regex$regex('\"'),
+			function (_p1) {
+				return '&quot;';
+			},
+			A4(
+				_elm_lang$core$Regex$replace,
+				_elm_lang$core$Regex$All,
+				_elm_lang$core$Regex$regex('>'),
+				function (_p2) {
+					return '&gt;';
+				},
+				A4(
+					_elm_lang$core$Regex$replace,
+					_elm_lang$core$Regex$All,
+					_elm_lang$core$Regex$regex('<'),
+					function (_p3) {
+						return '&lt;';
+					},
+					A4(
+						_elm_lang$core$Regex$replace,
+						_elm_lang$core$Regex$All,
+						_elm_lang$core$Regex$regex('&'),
+						function (_p4) {
+							return '&amp;';
+						},
+						s)))));
+};
+var _jinjor$elm_xml_parser$XmlParser$formatAttribute = function (attribute) {
 	return A2(
-		_BrianHicks$elm_benchmark$Benchmark$describe,
-		'String',
+		_elm_lang$core$Basics_ops['++'],
+		_jinjor$elm_xml_parser$XmlParser$escape(attribute.name),
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			'=\"',
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				_jinjor$elm_xml_parser$XmlParser$escape(attribute.value),
+				'\"')));
+};
+var _jinjor$elm_xml_parser$XmlParser$formatNode = function (node) {
+	var _p5 = node;
+	if (_p5.ctor === 'Element') {
+		var _p7 = _p5._0;
+		var _p6 = _p5._2;
+		return A2(
+			_elm_lang$core$Basics_ops['++'],
+			'<',
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				_jinjor$elm_xml_parser$XmlParser$escape(_p7),
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					' ',
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						A2(
+							_elm_lang$core$String$join,
+							' ',
+							A2(_elm_lang$core$List$map, _jinjor$elm_xml_parser$XmlParser$formatAttribute, _p5._1)),
+						_elm_lang$core$Native_Utils.eq(
+							_p6,
+							{ctor: '[]'}) ? '/>' : A2(
+							_elm_lang$core$Basics_ops['++'],
+							'>',
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								A2(
+									_elm_lang$core$String$join,
+									'',
+									A2(_elm_lang$core$List$map, _jinjor$elm_xml_parser$XmlParser$formatNode, _p6)),
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									'</',
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										_jinjor$elm_xml_parser$XmlParser$escape(_p7),
+										'>'))))))));
+	} else {
+		return _jinjor$elm_xml_parser$XmlParser$escape(_p5._0);
+	}
+};
+var _jinjor$elm_xml_parser$XmlParser$formatDocTypeDefinition = function (def) {
+	var _p8 = def;
+	switch (_p8.ctor) {
+		case 'Public':
+			return A2(
+				_elm_lang$core$Basics_ops['++'],
+				'PUBLIC \"',
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					_jinjor$elm_xml_parser$XmlParser$escape(_p8._0),
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						'\" \"',
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							_jinjor$elm_xml_parser$XmlParser$escape(_p8._1),
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								'\"',
+								function () {
+									var _p9 = _p8._2;
+									if (_p9.ctor === 'Just') {
+										return A2(
+											_elm_lang$core$Basics_ops['++'],
+											' [',
+											A2(
+												_elm_lang$core$Basics_ops['++'],
+												_jinjor$elm_xml_parser$XmlParser$escape(_p9._0),
+												']'));
+									} else {
+										return '';
+									}
+								}())))));
+		case 'System':
+			return A2(
+				_elm_lang$core$Basics_ops['++'],
+				'SYSTEM \"',
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					_jinjor$elm_xml_parser$XmlParser$escape(_p8._0),
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						'\"',
+						function () {
+							var _p10 = _p8._1;
+							if (_p10.ctor === 'Just') {
+								return A2(
+									_elm_lang$core$Basics_ops['++'],
+									' [',
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										_jinjor$elm_xml_parser$XmlParser$escape(_p10._0),
+										']'));
+							} else {
+								return '';
+							}
+						}())));
+		default:
+			return A2(
+				_elm_lang$core$Basics_ops['++'],
+				'[',
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					_jinjor$elm_xml_parser$XmlParser$escape(_p8._0),
+					']'));
+	}
+};
+var _jinjor$elm_xml_parser$XmlParser$formatDocType = function (docType) {
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		'<!DOCTYPE ',
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			_jinjor$elm_xml_parser$XmlParser$escape(docType.rootElementName),
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				' ',
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					_jinjor$elm_xml_parser$XmlParser$formatDocTypeDefinition(docType.definition),
+					'>'))));
+};
+var _jinjor$elm_xml_parser$XmlParser$formatProcessingInstruction = function (processingInstruction) {
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		'<?',
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			_jinjor$elm_xml_parser$XmlParser$escape(processingInstruction.name),
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				' ',
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					_jinjor$elm_xml_parser$XmlParser$escape(processingInstruction.value),
+					'?>'))));
+};
+var _jinjor$elm_xml_parser$XmlParser$format = function (xml) {
+	var node = _jinjor$elm_xml_parser$XmlParser$formatNode(xml.root);
+	var dt = A2(
+		_elm_lang$core$Maybe$withDefault,
+		'',
+		A2(_elm_lang$core$Maybe$map, _jinjor$elm_xml_parser$XmlParser$formatDocType, xml.docType));
+	var pi = A2(
+		_elm_lang$core$String$join,
+		'',
+		A2(_elm_lang$core$List$map, _jinjor$elm_xml_parser$XmlParser$formatProcessingInstruction, xml.processingInstructions));
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		pi,
+		A2(_elm_lang$core$Basics_ops['++'], dt, node));
+};
+var _jinjor$elm_xml_parser$XmlParser$comment = A2(
+	_elm_tools$parser$Parser_ops['|.'],
+	_elm_tools$parser$Parser$symbol('<!--'),
+	_elm_tools$parser$Parser$ignoreUntil('-->'));
+var _jinjor$elm_xml_parser$XmlParser$isWhitespace = function (c) {
+	return _elm_lang$core$Native_Utils.eq(
+		c,
+		_elm_lang$core$Native_Utils.chr(' ')) || (_elm_lang$core$Native_Utils.eq(
+		c,
+		_elm_lang$core$Native_Utils.chr('\r')) || (_elm_lang$core$Native_Utils.eq(
+		c,
+		_elm_lang$core$Native_Utils.chr('\n')) || _elm_lang$core$Native_Utils.eq(
+		c,
+		_elm_lang$core$Native_Utils.chr('\t'))));
+};
+var _jinjor$elm_xml_parser$XmlParser$whiteSpace1 = A2(_elm_tools$parser$Parser$ignore, _elm_tools$parser$Parser$oneOrMore, _jinjor$elm_xml_parser$XmlParser$isWhitespace);
+var _jinjor$elm_xml_parser$XmlParser$whiteSpace = A2(_elm_tools$parser$Parser$ignore, _elm_tools$parser$Parser$zeroOrMore, _jinjor$elm_xml_parser$XmlParser$isWhitespace);
+var _jinjor$elm_xml_parser$XmlParser$attributeName = A2(
+	_elm_tools$parser$Parser$inContext,
+	'attributeName',
+	A2(
+		_elm_tools$parser$Parser$keep,
+		_elm_tools$parser$Parser$oneOrMore,
+		function (c) {
+			return (!_jinjor$elm_xml_parser$XmlParser$isWhitespace(c)) && ((!_elm_lang$core$Native_Utils.eq(
+				c,
+				_elm_lang$core$Native_Utils.chr('/'))) && ((!_elm_lang$core$Native_Utils.eq(
+				c,
+				_elm_lang$core$Native_Utils.chr('<'))) && ((!_elm_lang$core$Native_Utils.eq(
+				c,
+				_elm_lang$core$Native_Utils.chr('>'))) && ((!_elm_lang$core$Native_Utils.eq(
+				c,
+				_elm_lang$core$Native_Utils.chr('\"'))) && ((!_elm_lang$core$Native_Utils.eq(
+				c,
+				_elm_lang$core$Native_Utils.chr('\''))) && (!_elm_lang$core$Native_Utils.eq(
+				c,
+				_elm_lang$core$Native_Utils.chr('='))))))));
+		}));
+var _jinjor$elm_xml_parser$XmlParser$validateAttributes = F2(
+	function (keys, attrs) {
+		validateAttributes:
+		while (true) {
+			var _p11 = attrs;
+			if (_p11.ctor === '[]') {
+				return _elm_lang$core$Maybe$Nothing;
+			} else {
+				var _p12 = _p11._0;
+				if (A2(_elm_lang$core$Set$member, _p12.name, keys)) {
+					return _elm_lang$core$Maybe$Just(_p12.name);
+				} else {
+					var _v5 = A2(_elm_lang$core$Set$insert, _p12.name, keys),
+						_v6 = _p11._1;
+					keys = _v5;
+					attrs = _v6;
+					continue validateAttributes;
+				}
+			}
+		}
+	});
+var _jinjor$elm_xml_parser$XmlParser$entities = _elm_lang$core$Dict$fromList(
+	{
+		ctor: '::',
+		_0: A2(
+			_jinjor$elm_xml_parser$XmlParser_ops['=>'],
+			'amp',
+			_elm_lang$core$Native_Utils.chr('&')),
+		_1: {
+			ctor: '::',
+			_0: A2(
+				_jinjor$elm_xml_parser$XmlParser_ops['=>'],
+				'lt',
+				_elm_lang$core$Native_Utils.chr('<')),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_jinjor$elm_xml_parser$XmlParser_ops['=>'],
+					'gt',
+					_elm_lang$core$Native_Utils.chr('>')),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_jinjor$elm_xml_parser$XmlParser_ops['=>'],
+						'apos',
+						_elm_lang$core$Native_Utils.chr('\'')),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_jinjor$elm_xml_parser$XmlParser_ops['=>'],
+							'quot',
+							_elm_lang$core$Native_Utils.chr('\"')),
+						_1: {ctor: '[]'}
+					}
+				}
+			}
+		}
+	});
+var _jinjor$elm_xml_parser$XmlParser$decodeEscape = function (s) {
+	return A2(_elm_lang$core$String$startsWith, '#x', s) ? A2(
+		_elm_lang$core$Result$map,
+		_elm_lang$core$Char$fromCode,
+		_rtfeldman$hex$Hex$fromString(
+			A2(_elm_lang$core$String$dropLeft, 2, s))) : (A2(_elm_lang$core$String$startsWith, '#', s) ? A2(
+		_elm_lang$core$Result$map,
+		_elm_lang$core$Char$fromCode,
+		_elm_lang$core$String$toInt(
+			A2(_elm_lang$core$String$dropLeft, 1, s))) : A2(
+		_elm_lang$core$Result$fromMaybe,
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			'No entity named \"&',
+			A2(_elm_lang$core$Basics_ops['++'], s, ';\" found.')),
+		A2(_elm_lang$core$Dict$get, s, _jinjor$elm_xml_parser$XmlParser$entities)));
+};
+var _jinjor$elm_xml_parser$XmlParser$escapedChar = function (end) {
+	return A2(
+		_elm_tools$parser$Parser$inContext,
+		'escapedChar',
+		A2(
+			_elm_tools$parser$Parser$andThen,
+			function (s) {
+				return _elm_tools$parser$Parser$oneOf(
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_tools$parser$Parser$andThen,
+							function (_p13) {
+								var _p14 = _jinjor$elm_xml_parser$XmlParser$decodeEscape(s);
+								if (_p14.ctor === 'Ok') {
+									return _elm_tools$parser$Parser$succeed(_p14._0);
+								} else {
+									return _elm_tools$parser$Parser$fail(_p14._0);
+								}
+							},
+							_elm_tools$parser$Parser$symbol(';')),
+						_1: {
+							ctor: '::',
+							_0: _elm_tools$parser$Parser$fail(
+								A2(_elm_lang$core$Basics_ops['++'], 'Entities must end with \";\": &', s)),
+							_1: {ctor: '[]'}
+						}
+					});
+			},
+			A2(
+				_elm_tools$parser$Parser_ops['|='],
+				A2(
+					_elm_tools$parser$Parser_ops['|.'],
+					_elm_tools$parser$Parser$succeed(_elm_lang$core$Basics$identity),
+					_elm_tools$parser$Parser$symbol('&')),
+				A2(
+					_elm_tools$parser$Parser$keep,
+					_elm_tools$parser$Parser$oneOrMore,
+					function (c) {
+						return (!_elm_lang$core$Native_Utils.eq(c, end)) && (!_elm_lang$core$Native_Utils.eq(
+							c,
+							_elm_lang$core$Native_Utils.chr(';')));
+					}))));
+};
+var _jinjor$elm_xml_parser$XmlParser$textString = function (end) {
+	return A2(
+		_elm_tools$parser$Parser$inContext,
+		'textString',
+		A2(
+			_elm_tools$parser$Parser$andThen,
+			function (s) {
+				return _elm_tools$parser$Parser$oneOf(
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_tools$parser$Parser_ops['|='],
+							A2(
+								_elm_tools$parser$Parser_ops['|='],
+								_elm_tools$parser$Parser$succeed(_elm_lang$core$String$cons),
+								_jinjor$elm_xml_parser$XmlParser$escapedChar(end)),
+							_elm_tools$parser$Parser$lazy(
+								function (_p15) {
+									return _jinjor$elm_xml_parser$XmlParser$textString(end);
+								})),
+						_1: {
+							ctor: '::',
+							_0: _elm_tools$parser$Parser$succeed(s),
+							_1: {ctor: '[]'}
+						}
+					});
+			},
+			A2(
+				_elm_tools$parser$Parser$keep,
+				_elm_tools$parser$Parser$zeroOrMore,
+				function (c) {
+					return (!_elm_lang$core$Native_Utils.eq(c, end)) && (!_elm_lang$core$Native_Utils.eq(
+						c,
+						_elm_lang$core$Native_Utils.chr('&')));
+				})));
+};
+var _jinjor$elm_xml_parser$XmlParser$attributeValue = A2(
+	_elm_tools$parser$Parser$inContext,
+	'attributeValue',
+	_elm_tools$parser$Parser$oneOf(
 		{
 			ctor: '::',
 			_0: A2(
-				_BrianHicks$elm_benchmark$Benchmark$describe,
-				'map',
-				{
+				_elm_tools$parser$Parser_ops['|.'],
+				A2(
+					_elm_tools$parser$Parser_ops['|='],
+					A2(
+						_elm_tools$parser$Parser_ops['|.'],
+						_elm_tools$parser$Parser$succeed(_elm_lang$core$Basics$identity),
+						_elm_tools$parser$Parser$symbol('\"')),
+					_jinjor$elm_xml_parser$XmlParser$textString(
+						_elm_lang$core$Native_Utils.chr('\"'))),
+				_elm_tools$parser$Parser$symbol('\"')),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_tools$parser$Parser_ops['|.'],
+					A2(
+						_elm_tools$parser$Parser_ops['|='],
+						A2(
+							_elm_tools$parser$Parser_ops['|.'],
+							_elm_tools$parser$Parser$succeed(_elm_lang$core$Basics$identity),
+							_elm_tools$parser$Parser$symbol('\'')),
+						_jinjor$elm_xml_parser$XmlParser$textString(
+							_elm_lang$core$Native_Utils.chr('\''))),
+					_elm_tools$parser$Parser$symbol('\'')),
+				_1: {ctor: '[]'}
+			}
+		}));
+var _jinjor$elm_xml_parser$XmlParser$tagName = A2(
+	_elm_tools$parser$Parser$inContext,
+	'tagName',
+	A2(
+		_elm_tools$parser$Parser$keep,
+		_elm_tools$parser$Parser$oneOrMore,
+		function (c) {
+			return (!_jinjor$elm_xml_parser$XmlParser$isWhitespace(c)) && ((!_elm_lang$core$Native_Utils.eq(
+				c,
+				_elm_lang$core$Native_Utils.chr('/'))) && ((!_elm_lang$core$Native_Utils.eq(
+				c,
+				_elm_lang$core$Native_Utils.chr('<'))) && ((!_elm_lang$core$Native_Utils.eq(
+				c,
+				_elm_lang$core$Native_Utils.chr('>'))) && ((!_elm_lang$core$Native_Utils.eq(
+				c,
+				_elm_lang$core$Native_Utils.chr('\"'))) && ((!_elm_lang$core$Native_Utils.eq(
+				c,
+				_elm_lang$core$Native_Utils.chr('\''))) && (!_elm_lang$core$Native_Utils.eq(
+				c,
+				_elm_lang$core$Native_Utils.chr('='))))))));
+		}));
+var _jinjor$elm_xml_parser$XmlParser$closingTag = function (startTagName) {
+	return A2(
+		_elm_tools$parser$Parser$inContext,
+		'closingTag',
+		A2(
+			_elm_tools$parser$Parser_ops['|.'],
+			A2(
+				_elm_tools$parser$Parser_ops['|.'],
+				A2(
+					_elm_tools$parser$Parser_ops['|.'],
+					A2(
+						_elm_tools$parser$Parser_ops['|.'],
+						A2(
+							_elm_tools$parser$Parser_ops['|.'],
+							_elm_tools$parser$Parser$succeed(
+								{ctor: '_Tuple0'}),
+							_elm_tools$parser$Parser$symbol('</')),
+						_jinjor$elm_xml_parser$XmlParser$whiteSpace),
+					A2(
+						_elm_tools$parser$Parser$andThen,
+						function (endTagName) {
+							return _elm_lang$core$Native_Utils.eq(startTagName, endTagName) ? _elm_tools$parser$Parser$succeed(
+								{ctor: '_Tuple0'}) : _elm_tools$parser$Parser$fail(
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									'tag name mismatch: ',
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										startTagName,
+										A2(_elm_lang$core$Basics_ops['++'], ' and ', endTagName))));
+						},
+						_jinjor$elm_xml_parser$XmlParser$tagName)),
+				_jinjor$elm_xml_parser$XmlParser$whiteSpace),
+			_elm_tools$parser$Parser$symbol('>')));
+};
+var _jinjor$elm_xml_parser$XmlParser$cdataContent = A2(
+	_elm_tools$parser$Parser$inContext,
+	'cdataContent',
+	_elm_tools$parser$Parser$oneOf(
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_tools$parser$Parser_ops['|.'],
+				_elm_tools$parser$Parser$succeed(''),
+				_elm_tools$parser$Parser$symbol(']]>')),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_tools$parser$Parser$andThen,
+					function (_p16) {
+						return A2(
+							_elm_tools$parser$Parser$map,
+							function (tail) {
+								return A2(_elm_lang$core$Basics_ops['++'], ']]', tail);
+							},
+							_jinjor$elm_xml_parser$XmlParser$cdataContent);
+					},
+					_elm_tools$parser$Parser$symbol(']]')),
+				_1: {
 					ctor: '::',
 					_0: A2(
-						_BrianHicks$elm_benchmark$Benchmark$benchmark,
-						'replace characters in a long string',
-						function (_p1) {
-							return A2(_elm_lang$core$String$map, mapper, longString);
-						}),
+						_elm_tools$parser$Parser$andThen,
+						function (_p17) {
+							return A2(
+								_elm_tools$parser$Parser$map,
+								function (tail) {
+									return A2(_elm_lang$core$Basics_ops['++'], ']', tail);
+								},
+								_jinjor$elm_xml_parser$XmlParser$cdataContent);
+						},
+						_elm_tools$parser$Parser$symbol(']')),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_tools$parser$Parser_ops['|='],
+							A2(
+								_elm_tools$parser$Parser_ops['|='],
+								_elm_tools$parser$Parser$succeed(
+									F2(
+										function (x, y) {
+											return A2(_elm_lang$core$Basics_ops['++'], x, y);
+										})),
+								A2(
+									_elm_tools$parser$Parser$keep,
+									_elm_tools$parser$Parser$zeroOrMore,
+									function (c) {
+										return !_elm_lang$core$Native_Utils.eq(
+											c,
+											_elm_lang$core$Native_Utils.chr(']'));
+									})),
+							_elm_tools$parser$Parser$lazy(
+								function (_p18) {
+									return _jinjor$elm_xml_parser$XmlParser$cdataContent;
+								})),
+						_1: {ctor: '[]'}
+					}
+				}
+			}
+		}));
+var _jinjor$elm_xml_parser$XmlParser$cdata = A2(
+	_elm_tools$parser$Parser$inContext,
+	'cdata',
+	A2(
+		_elm_tools$parser$Parser_ops['|='],
+		A2(
+			_elm_tools$parser$Parser_ops['|.'],
+			_elm_tools$parser$Parser$succeed(_elm_lang$core$Basics$identity),
+			_elm_tools$parser$Parser$symbol('<![CDATA[')),
+		_jinjor$elm_xml_parser$XmlParser$cdataContent));
+var _jinjor$elm_xml_parser$XmlParser$textNodeString = A2(
+	_elm_tools$parser$Parser$inContext,
+	'textNodeString',
+	_elm_tools$parser$Parser$oneOf(
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_tools$parser$Parser_ops['|='],
+				A2(
+					_elm_tools$parser$Parser_ops['|='],
+					_elm_tools$parser$Parser$succeed(
+						F2(
+							function (s, maybeString) {
+								return _elm_lang$core$Maybe$Just(
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										s,
+										A2(_elm_lang$core$Maybe$withDefault, '', maybeString)));
+							})),
+					A2(
+						_elm_tools$parser$Parser$keep,
+						_elm_tools$parser$Parser$oneOrMore,
+						function (c) {
+							return (!_elm_lang$core$Native_Utils.eq(
+								c,
+								_elm_lang$core$Native_Utils.chr('<'))) && (!_elm_lang$core$Native_Utils.eq(
+								c,
+								_elm_lang$core$Native_Utils.chr('&')));
+						})),
+				_elm_tools$parser$Parser$lazy(
+					function (_p19) {
+						return _jinjor$elm_xml_parser$XmlParser$textNodeString;
+					})),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_tools$parser$Parser_ops['|='],
+					A2(
+						_elm_tools$parser$Parser_ops['|='],
+						_elm_tools$parser$Parser$succeed(
+							F2(
+								function (c, maybeString) {
+									return _elm_lang$core$Maybe$Just(
+										A2(
+											_elm_lang$core$String$cons,
+											c,
+											A2(_elm_lang$core$Maybe$withDefault, '', maybeString)));
+								})),
+						_jinjor$elm_xml_parser$XmlParser$escapedChar(
+							_elm_lang$core$Native_Utils.chr('<'))),
+					_elm_tools$parser$Parser$lazy(
+						function (_p20) {
+							return _jinjor$elm_xml_parser$XmlParser$textNodeString;
+						})),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_tools$parser$Parser_ops['|='],
+						A2(
+							_elm_tools$parser$Parser_ops['|='],
+							_elm_tools$parser$Parser$succeed(
+								F2(
+									function (s, maybeString) {
+										var str = A2(
+											_elm_lang$core$Basics_ops['++'],
+											s,
+											A2(_elm_lang$core$Maybe$withDefault, '', maybeString));
+										return (!_elm_lang$core$Native_Utils.eq(str, '')) ? _elm_lang$core$Maybe$Just(str) : _elm_lang$core$Maybe$Nothing;
+									})),
+							_jinjor$elm_xml_parser$XmlParser$cdata),
+						_elm_tools$parser$Parser$lazy(
+							function (_p21) {
+								return _jinjor$elm_xml_parser$XmlParser$textNodeString;
+							})),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_tools$parser$Parser_ops['|='],
+							A2(
+								_elm_tools$parser$Parser_ops['|.'],
+								_elm_tools$parser$Parser$succeed(
+									function (maybeString) {
+										var str = A2(_elm_lang$core$Maybe$withDefault, '', maybeString);
+										return (!_elm_lang$core$Native_Utils.eq(str, '')) ? _elm_lang$core$Maybe$Just(str) : _elm_lang$core$Maybe$Nothing;
+									}),
+								_jinjor$elm_xml_parser$XmlParser$comment),
+							_elm_tools$parser$Parser$lazy(
+								function (_p22) {
+									return _jinjor$elm_xml_parser$XmlParser$textNodeString;
+								})),
+						_1: {
+							ctor: '::',
+							_0: _elm_tools$parser$Parser$succeed(_elm_lang$core$Maybe$Nothing),
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			}
+		}));
+var _jinjor$elm_xml_parser$XmlParser$docTypeInternalSubset = A2(
+	_elm_tools$parser$Parser$inContext,
+	'docTypeInternalSubset',
+	A2(
+		_elm_tools$parser$Parser_ops['|.'],
+		A2(
+			_elm_tools$parser$Parser_ops['|='],
+			A2(
+				_elm_tools$parser$Parser_ops['|.'],
+				_elm_tools$parser$Parser$succeed(_elm_lang$core$Basics$identity),
+				_elm_tools$parser$Parser$symbol('[')),
+			A2(
+				_elm_tools$parser$Parser$keep,
+				_elm_tools$parser$Parser$zeroOrMore,
+				function (c) {
+					return !_elm_lang$core$Native_Utils.eq(
+						c,
+						_elm_lang$core$Native_Utils.chr(']'));
+				})),
+		_elm_tools$parser$Parser$symbol(']')));
+var _jinjor$elm_xml_parser$XmlParser$docTypeExternalSubset = A2(
+	_elm_tools$parser$Parser$inContext,
+	'docTypeExternalSubset',
+	A2(
+		_elm_tools$parser$Parser_ops['|.'],
+		A2(
+			_elm_tools$parser$Parser_ops['|='],
+			A2(
+				_elm_tools$parser$Parser_ops['|.'],
+				_elm_tools$parser$Parser$succeed(_elm_lang$core$Basics$identity),
+				_elm_tools$parser$Parser$symbol('\"')),
+			A2(
+				_elm_tools$parser$Parser$keep,
+				_elm_tools$parser$Parser$zeroOrMore,
+				function (c) {
+					return !_elm_lang$core$Native_Utils.eq(
+						c,
+						_elm_lang$core$Native_Utils.chr('\"'));
+				})),
+		_elm_tools$parser$Parser$symbol('\"')));
+var _jinjor$elm_xml_parser$XmlParser$publicIdentifier = A2(
+	_elm_tools$parser$Parser$inContext,
+	'publicIdentifier',
+	A2(
+		_elm_tools$parser$Parser_ops['|.'],
+		A2(
+			_elm_tools$parser$Parser_ops['|='],
+			A2(
+				_elm_tools$parser$Parser_ops['|.'],
+				_elm_tools$parser$Parser$succeed(_elm_lang$core$Basics$identity),
+				_elm_tools$parser$Parser$symbol('\"')),
+			A2(
+				_elm_tools$parser$Parser$keep,
+				_elm_tools$parser$Parser$zeroOrMore,
+				function (c) {
+					return !_elm_lang$core$Native_Utils.eq(
+						c,
+						_elm_lang$core$Native_Utils.chr('\"'));
+				})),
+		_elm_tools$parser$Parser$symbol('\"')));
+var _jinjor$elm_xml_parser$XmlParser$processingInstructionValue = A2(
+	_elm_tools$parser$Parser$inContext,
+	'processingInstructionValue',
+	_elm_tools$parser$Parser$oneOf(
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_tools$parser$Parser_ops['|.'],
+				_elm_tools$parser$Parser$succeed(''),
+				_elm_tools$parser$Parser$symbol('?>')),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_tools$parser$Parser$andThen,
+					function (_p23) {
+						return A2(
+							_elm_tools$parser$Parser$map,
+							function (tail) {
+								return A2(_elm_lang$core$Basics_ops['++'], '?', tail);
+							},
+							_jinjor$elm_xml_parser$XmlParser$processingInstructionValue);
+					},
+					_elm_tools$parser$Parser$symbol('?')),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_tools$parser$Parser_ops['|='],
+						A2(
+							_elm_tools$parser$Parser_ops['|='],
+							_elm_tools$parser$Parser$succeed(
+								F2(
+									function (x, y) {
+										return A2(_elm_lang$core$Basics_ops['++'], x, y);
+									})),
+							A2(
+								_elm_tools$parser$Parser$keep,
+								_elm_tools$parser$Parser$zeroOrMore,
+								function (c) {
+									return !_elm_lang$core$Native_Utils.eq(
+										c,
+										_elm_lang$core$Native_Utils.chr('?'));
+								})),
+						_elm_tools$parser$Parser$lazy(
+							function (_p24) {
+								return _jinjor$elm_xml_parser$XmlParser$processingInstructionValue;
+							})),
 					_1: {ctor: '[]'}
-				}),
+				}
+			}
+		}));
+var _jinjor$elm_xml_parser$XmlParser$processingInstructionName = A2(
+	_elm_tools$parser$Parser$inContext,
+	'processingInstructionName',
+	A2(
+		_elm_tools$parser$Parser$keep,
+		_elm_tools$parser$Parser$oneOrMore,
+		function (c) {
+			return !_elm_lang$core$Native_Utils.eq(
+				c,
+				_elm_lang$core$Native_Utils.chr(' '));
+		}));
+var _jinjor$elm_xml_parser$XmlParser$Xml = F3(
+	function (a, b, c) {
+		return {processingInstructions: a, docType: b, root: c};
+	});
+var _jinjor$elm_xml_parser$XmlParser$ProcessingInstruction = F2(
+	function (a, b) {
+		return {name: a, value: b};
+	});
+var _jinjor$elm_xml_parser$XmlParser$processingInstruction = A2(
+	_elm_tools$parser$Parser$inContext,
+	'processingInstruction',
+	A2(
+		_elm_tools$parser$Parser_ops['|='],
+		A2(
+			_elm_tools$parser$Parser_ops['|.'],
+			A2(
+				_elm_tools$parser$Parser_ops['|='],
+				A2(
+					_elm_tools$parser$Parser_ops['|.'],
+					_elm_tools$parser$Parser$succeed(_jinjor$elm_xml_parser$XmlParser$ProcessingInstruction),
+					_elm_tools$parser$Parser$symbol('<?')),
+				_jinjor$elm_xml_parser$XmlParser$processingInstructionName),
+			_elm_tools$parser$Parser$symbol(' ')),
+		_jinjor$elm_xml_parser$XmlParser$processingInstructionValue));
+var _jinjor$elm_xml_parser$XmlParser$DocType = F2(
+	function (a, b) {
+		return {rootElementName: a, definition: b};
+	});
+var _jinjor$elm_xml_parser$XmlParser$Attribute = F2(
+	function (a, b) {
+		return {name: a, value: b};
+	});
+var _jinjor$elm_xml_parser$XmlParser$attribute = A2(
+	_elm_tools$parser$Parser$inContext,
+	'attribute',
+	A2(
+		_elm_tools$parser$Parser_ops['|='],
+		A2(
+			_elm_tools$parser$Parser_ops['|.'],
+			A2(
+				_elm_tools$parser$Parser_ops['|.'],
+				A2(
+					_elm_tools$parser$Parser_ops['|.'],
+					A2(
+						_elm_tools$parser$Parser_ops['|='],
+						_elm_tools$parser$Parser$succeed(_jinjor$elm_xml_parser$XmlParser$Attribute),
+						_jinjor$elm_xml_parser$XmlParser$attributeName),
+					_jinjor$elm_xml_parser$XmlParser$whiteSpace),
+				_elm_tools$parser$Parser$symbol('=')),
+			_jinjor$elm_xml_parser$XmlParser$whiteSpace),
+		_jinjor$elm_xml_parser$XmlParser$attributeValue));
+var _jinjor$elm_xml_parser$XmlParser$attributes = function (keys) {
+	return A2(
+		_elm_tools$parser$Parser$inContext,
+		'attributes',
+		_elm_tools$parser$Parser$oneOf(
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_tools$parser$Parser$andThen,
+					function (attr) {
+						return A2(_elm_lang$core$Set$member, attr.name, keys) ? _elm_tools$parser$Parser$fail(
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								'attribute ',
+								A2(_elm_lang$core$Basics_ops['++'], attr.name, ' is duplicated'))) : A2(
+							_elm_tools$parser$Parser_ops['|='],
+							A2(
+								_elm_tools$parser$Parser_ops['|.'],
+								_elm_tools$parser$Parser$succeed(
+									F2(
+										function (x, y) {
+											return {ctor: '::', _0: x, _1: y};
+										})(attr)),
+								_jinjor$elm_xml_parser$XmlParser$whiteSpace),
+							_jinjor$elm_xml_parser$XmlParser$attributes(
+								A2(_elm_lang$core$Set$insert, attr.name, keys)));
+					},
+					_jinjor$elm_xml_parser$XmlParser$attribute),
+				_1: {
+					ctor: '::',
+					_0: _elm_tools$parser$Parser$succeed(
+						{ctor: '[]'}),
+					_1: {ctor: '[]'}
+				}
+			}));
+};
+var _jinjor$elm_xml_parser$XmlParser$Custom = function (a) {
+	return {ctor: 'Custom', _0: a};
+};
+var _jinjor$elm_xml_parser$XmlParser$System = F2(
+	function (a, b) {
+		return {ctor: 'System', _0: a, _1: b};
+	});
+var _jinjor$elm_xml_parser$XmlParser$Public = F3(
+	function (a, b, c) {
+		return {ctor: 'Public', _0: a, _1: b, _2: c};
+	});
+var _jinjor$elm_xml_parser$XmlParser$docTypeDefinition = A2(
+	_elm_tools$parser$Parser$inContext,
+	'docTypeDefinition',
+	_elm_tools$parser$Parser$oneOf(
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_tools$parser$Parser_ops['|='],
+				A2(
+					_elm_tools$parser$Parser_ops['|.'],
+					A2(
+						_elm_tools$parser$Parser_ops['|='],
+						A2(
+							_elm_tools$parser$Parser_ops['|.'],
+							A2(
+								_elm_tools$parser$Parser_ops['|='],
+								A2(
+									_elm_tools$parser$Parser_ops['|.'],
+									A2(
+										_elm_tools$parser$Parser_ops['|.'],
+										_elm_tools$parser$Parser$succeed(_jinjor$elm_xml_parser$XmlParser$Public),
+										_elm_tools$parser$Parser$keyword('PUBLIC')),
+									_jinjor$elm_xml_parser$XmlParser$whiteSpace),
+								_jinjor$elm_xml_parser$XmlParser$publicIdentifier),
+							_jinjor$elm_xml_parser$XmlParser$whiteSpace),
+						_jinjor$elm_xml_parser$XmlParser$docTypeExternalSubset),
+					_jinjor$elm_xml_parser$XmlParser$whiteSpace),
+				_jinjor$elm_xml_parser$XmlParser$maybe(_jinjor$elm_xml_parser$XmlParser$docTypeInternalSubset)),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_tools$parser$Parser_ops['|='],
+					A2(
+						_elm_tools$parser$Parser_ops['|.'],
+						A2(
+							_elm_tools$parser$Parser_ops['|='],
+							A2(
+								_elm_tools$parser$Parser_ops['|.'],
+								A2(
+									_elm_tools$parser$Parser_ops['|.'],
+									_elm_tools$parser$Parser$succeed(_jinjor$elm_xml_parser$XmlParser$System),
+									_elm_tools$parser$Parser$keyword('SYSTEM')),
+								_jinjor$elm_xml_parser$XmlParser$whiteSpace),
+							_jinjor$elm_xml_parser$XmlParser$docTypeExternalSubset),
+						_jinjor$elm_xml_parser$XmlParser$whiteSpace),
+					_jinjor$elm_xml_parser$XmlParser$maybe(_jinjor$elm_xml_parser$XmlParser$docTypeInternalSubset)),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_tools$parser$Parser_ops['|='],
+						_elm_tools$parser$Parser$succeed(_jinjor$elm_xml_parser$XmlParser$Custom),
+						_jinjor$elm_xml_parser$XmlParser$docTypeInternalSubset),
+					_1: {ctor: '[]'}
+				}
+			}
+		}));
+var _jinjor$elm_xml_parser$XmlParser$docType = A2(
+	_elm_tools$parser$Parser$inContext,
+	'docType',
+	A2(
+		_elm_tools$parser$Parser_ops['|.'],
+		A2(
+			_elm_tools$parser$Parser_ops['|.'],
+			A2(
+				_elm_tools$parser$Parser_ops['|='],
+				A2(
+					_elm_tools$parser$Parser_ops['|.'],
+					A2(
+						_elm_tools$parser$Parser_ops['|='],
+						A2(
+							_elm_tools$parser$Parser_ops['|.'],
+							A2(
+								_elm_tools$parser$Parser_ops['|.'],
+								_elm_tools$parser$Parser$succeed(_jinjor$elm_xml_parser$XmlParser$DocType),
+								_elm_tools$parser$Parser$symbol('<!DOCTYPE')),
+							_jinjor$elm_xml_parser$XmlParser$whiteSpace),
+						_jinjor$elm_xml_parser$XmlParser$tagName),
+					_jinjor$elm_xml_parser$XmlParser$whiteSpace),
+				_jinjor$elm_xml_parser$XmlParser$docTypeDefinition),
+			_jinjor$elm_xml_parser$XmlParser$whiteSpace),
+		_elm_tools$parser$Parser$symbol('>')));
+var _jinjor$elm_xml_parser$XmlParser$Text = function (a) {
+	return {ctor: 'Text', _0: a};
+};
+var _jinjor$elm_xml_parser$XmlParser$Element = F3(
+	function (a, b, c) {
+		return {ctor: 'Element', _0: a, _1: b, _2: c};
+	});
+var _jinjor$elm_xml_parser$XmlParser$element = A2(
+	_elm_tools$parser$Parser$inContext,
+	'element',
+	A2(
+		_elm_tools$parser$Parser_ops['|='],
+		A2(
+			_elm_tools$parser$Parser_ops['|.'],
+			_elm_tools$parser$Parser$succeed(_elm_lang$core$Basics$identity),
+			_elm_tools$parser$Parser$symbol('<')),
+		A2(
+			_elm_tools$parser$Parser$andThen,
+			function (startTagName) {
+				return A2(
+					_elm_tools$parser$Parser_ops['|='],
+					A2(
+						_elm_tools$parser$Parser_ops['|.'],
+						A2(
+							_elm_tools$parser$Parser_ops['|='],
+							A2(
+								_elm_tools$parser$Parser_ops['|.'],
+								_elm_tools$parser$Parser$succeed(
+									_jinjor$elm_xml_parser$XmlParser$Element(startTagName)),
+								_jinjor$elm_xml_parser$XmlParser$whiteSpace),
+							_jinjor$elm_xml_parser$XmlParser$attributes(_elm_lang$core$Set$empty)),
+						_jinjor$elm_xml_parser$XmlParser$whiteSpace),
+					_elm_tools$parser$Parser$oneOf(
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_tools$parser$Parser_ops['|.'],
+								_elm_tools$parser$Parser$succeed(
+									{ctor: '[]'}),
+								_elm_tools$parser$Parser$symbol('/>')),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_tools$parser$Parser_ops['|='],
+									A2(
+										_elm_tools$parser$Parser_ops['|.'],
+										_elm_tools$parser$Parser$succeed(_elm_lang$core$Basics$identity),
+										_elm_tools$parser$Parser$symbol('>')),
+									_elm_tools$parser$Parser$lazy(
+										function (_p25) {
+											return _jinjor$elm_xml_parser$XmlParser$children(startTagName);
+										})),
+								_1: {ctor: '[]'}
+							}
+						}));
+			},
+			_jinjor$elm_xml_parser$XmlParser$tagName)));
+var _jinjor$elm_xml_parser$XmlParser$children = function (startTagName) {
+	return A2(
+		_elm_tools$parser$Parser$inContext,
+		'children',
+		_elm_tools$parser$Parser$oneOf(
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_tools$parser$Parser_ops['|.'],
+					_elm_tools$parser$Parser$succeed(
+						{ctor: '[]'}),
+					_jinjor$elm_xml_parser$XmlParser$closingTag(startTagName)),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_tools$parser$Parser$andThen,
+						function (maybeString) {
+							var _p26 = maybeString;
+							if (_p26.ctor === 'Just') {
+								return A2(
+									_elm_tools$parser$Parser_ops['|='],
+									_elm_tools$parser$Parser$succeed(
+										function (rest) {
+											return {
+												ctor: '::',
+												_0: _jinjor$elm_xml_parser$XmlParser$Text(_p26._0),
+												_1: rest
+											};
+										}),
+									_jinjor$elm_xml_parser$XmlParser$children(startTagName));
+							} else {
+								return A2(
+									_elm_tools$parser$Parser_ops['|.'],
+									_elm_tools$parser$Parser$succeed(
+										{ctor: '[]'}),
+									_jinjor$elm_xml_parser$XmlParser$closingTag(startTagName));
+							}
+						},
+						_jinjor$elm_xml_parser$XmlParser$textNodeString),
+					_1: {
+						ctor: '::',
+						_0: _elm_tools$parser$Parser$lazy(
+							function (_p27) {
+								return A2(
+									_elm_tools$parser$Parser_ops['|='],
+									A2(
+										_elm_tools$parser$Parser_ops['|='],
+										_elm_tools$parser$Parser$succeed(
+											F2(
+												function (x, y) {
+													return {ctor: '::', _0: x, _1: y};
+												})),
+										_jinjor$elm_xml_parser$XmlParser$element),
+									_jinjor$elm_xml_parser$XmlParser$children(startTagName));
+							}),
+						_1: {ctor: '[]'}
+					}
+				}
+			}));
+};
+var _jinjor$elm_xml_parser$XmlParser$xml = A2(
+	_elm_tools$parser$Parser$inContext,
+	'xml',
+	A2(
+		_elm_tools$parser$Parser_ops['|.'],
+		A2(
+			_elm_tools$parser$Parser_ops['|.'],
+			A2(
+				_elm_tools$parser$Parser_ops['|='],
+				A2(
+					_elm_tools$parser$Parser_ops['|.'],
+					A2(
+						_elm_tools$parser$Parser_ops['|='],
+						A2(
+							_elm_tools$parser$Parser_ops['|.'],
+							A2(
+								_elm_tools$parser$Parser_ops['|='],
+								A2(
+									_elm_tools$parser$Parser_ops['|.'],
+									_elm_tools$parser$Parser$succeed(_jinjor$elm_xml_parser$XmlParser$Xml),
+									_jinjor$elm_xml_parser$XmlParser$whiteSpace),
+								A2(
+									_elm_tools$parser$Parser$repeat,
+									_elm_tools$parser$Parser$zeroOrMore,
+									A2(
+										_elm_tools$parser$Parser_ops['|.'],
+										A2(
+											_elm_tools$parser$Parser_ops['|='],
+											_elm_tools$parser$Parser$succeed(_elm_lang$core$Basics$identity),
+											_jinjor$elm_xml_parser$XmlParser$processingInstruction),
+										_jinjor$elm_xml_parser$XmlParser$whiteSpace))),
+							A2(
+								_elm_tools$parser$Parser$repeat,
+								_elm_tools$parser$Parser$zeroOrMore,
+								_elm_tools$parser$Parser$oneOf(
+									{
+										ctor: '::',
+										_0: _jinjor$elm_xml_parser$XmlParser$whiteSpace1,
+										_1: {
+											ctor: '::',
+											_0: _jinjor$elm_xml_parser$XmlParser$comment,
+											_1: {ctor: '[]'}
+										}
+									}))),
+						_jinjor$elm_xml_parser$XmlParser$maybe(_jinjor$elm_xml_parser$XmlParser$docType)),
+					A2(
+						_elm_tools$parser$Parser$repeat,
+						_elm_tools$parser$Parser$zeroOrMore,
+						_elm_tools$parser$Parser$oneOf(
+							{
+								ctor: '::',
+								_0: _jinjor$elm_xml_parser$XmlParser$whiteSpace1,
+								_1: {
+									ctor: '::',
+									_0: _jinjor$elm_xml_parser$XmlParser$comment,
+									_1: {ctor: '[]'}
+								}
+							}))),
+				_jinjor$elm_xml_parser$XmlParser$element),
+			A2(
+				_elm_tools$parser$Parser$repeat,
+				_elm_tools$parser$Parser$zeroOrMore,
+				_elm_tools$parser$Parser$oneOf(
+					{
+						ctor: '::',
+						_0: _jinjor$elm_xml_parser$XmlParser$whiteSpace1,
+						_1: {
+							ctor: '::',
+							_0: _jinjor$elm_xml_parser$XmlParser$comment,
+							_1: {ctor: '[]'}
+						}
+					}))),
+		_elm_tools$parser$Parser$end));
+var _jinjor$elm_xml_parser$XmlParser$parse = function (source) {
+	return A2(_elm_tools$parser$Parser$run, _jinjor$elm_xml_parser$XmlParser$xml, source);
+};
+var _ymtszw$elm_xml_decode$ExampleXml$cdCatalog = '\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<CATALOG>\n  <CD>\n    <TITLE>Empire Burlesque</TITLE>\n    <ARTIST>Bob Dylan</ARTIST>\n    <COUNTRY>USA</COUNTRY>\n    <COMPANY>Columbia</COMPANY>\n    <PRICE>10.90</PRICE>\n    <YEAR>1985</YEAR>\n  </CD>\n  <CD>\n    <TITLE>Hide your heart</TITLE>\n    <ARTIST>Bonnie Tyler</ARTIST>\n    <COUNTRY>UK</COUNTRY>\n    <COMPANY>CBS Records</COMPANY>\n    <PRICE>9.90</PRICE>\n    <YEAR>1988</YEAR>\n  </CD>\n  <CD>\n    <TITLE>Greatest Hits</TITLE>\n    <ARTIST>Dolly Parton</ARTIST>\n    <COUNTRY>USA</COUNTRY>\n    <COMPANY>RCA</COMPANY>\n    <PRICE>9.90</PRICE>\n    <YEAR>1982</YEAR>\n  </CD>\n  <CD>\n    <TITLE>Still got the blues</TITLE>\n    <ARTIST>Gary Moore</ARTIST>\n    <COUNTRY>UK</COUNTRY>\n    <COMPANY>Virgin records</COMPANY>\n    <PRICE>10.20</PRICE>\n    <YEAR>1990</YEAR>\n  </CD>\n  <CD>\n    <TITLE>Eros</TITLE>\n    <ARTIST>Eros Ramazzotti</ARTIST>\n    <COUNTRY>EU</COUNTRY>\n    <COMPANY>BMG</COMPANY>\n    <PRICE>9.90</PRICE>\n    <YEAR>1997</YEAR>\n  </CD>\n  <CD>\n    <TITLE>One night only</TITLE>\n    <ARTIST>Bee Gees</ARTIST>\n    <COUNTRY>UK</COUNTRY>\n    <COMPANY>Polydor</COMPANY>\n    <PRICE>10.90</PRICE>\n    <YEAR>1998</YEAR>\n  </CD>\n  <CD>\n    <TITLE>Sylvias Mother</TITLE>\n    <ARTIST>Dr.Hook</ARTIST>\n    <COUNTRY>UK</COUNTRY>\n    <COMPANY>CBS</COMPANY>\n    <PRICE>8.10</PRICE>\n    <YEAR>1973</YEAR>\n  </CD>\n  <CD>\n    <TITLE>Maggie May</TITLE>\n    <ARTIST>Rod Stewart</ARTIST>\n    <COUNTRY>UK</COUNTRY>\n    <COMPANY>Pickwick</COMPANY>\n    <PRICE>8.50</PRICE>\n    <YEAR>1990</YEAR>\n  </CD>\n  <CD>\n    <TITLE>Romanza</TITLE>\n    <ARTIST>Andrea Bocelli</ARTIST>\n    <COUNTRY>EU</COUNTRY>\n    <COMPANY>Polydor</COMPANY>\n    <PRICE>10.80</PRICE>\n    <YEAR>1996</YEAR>\n  </CD>\n  <CD>\n    <TITLE>When a man loves a woman</TITLE>\n    <ARTIST>Percy Sledge</ARTIST>\n    <COUNTRY>USA</COUNTRY>\n    <COMPANY>Atlantic</COMPANY>\n    <PRICE>8.70</PRICE>\n    <YEAR>1987</YEAR>\n  </CD>\n  <CD>\n    <TITLE>Black angel</TITLE>\n    <ARTIST>Savage Rose</ARTIST>\n    <COUNTRY>EU</COUNTRY>\n    <COMPANY>Mega</COMPANY>\n    <PRICE>10.90</PRICE>\n    <YEAR>1995</YEAR>\n  </CD>\n  <CD>\n    <TITLE>1999 Grammy Nominees</TITLE>\n    <ARTIST>Many</ARTIST>\n    <COUNTRY>USA</COUNTRY>\n    <COMPANY>Grammy</COMPANY>\n    <PRICE>10.20</PRICE>\n    <YEAR>1999</YEAR>\n  </CD>\n  <CD>\n    <TITLE>For the good times</TITLE>\n    <ARTIST>Kenny Rogers</ARTIST>\n    <COUNTRY>UK</COUNTRY>\n    <COMPANY>Mucik Master</COMPANY>\n    <PRICE>8.70</PRICE>\n    <YEAR>1995</YEAR>\n  </CD>\n  <CD>\n    <TITLE>Big Willie style</TITLE>\n    <ARTIST>Will Smith</ARTIST>\n    <COUNTRY>USA</COUNTRY>\n    <COMPANY>Columbia</COMPANY>\n    <PRICE>9.90</PRICE>\n    <YEAR>1997</YEAR>\n  </CD>\n  <CD>\n    <TITLE>Tupelo Honey</TITLE>\n    <ARTIST>Van Morrison</ARTIST>\n    <COUNTRY>UK</COUNTRY>\n    <COMPANY>Polydor</COMPANY>\n    <PRICE>8.20</PRICE>\n    <YEAR>1971</YEAR>\n  </CD>\n  <CD>\n    <TITLE>Soulsville</TITLE>\n    <ARTIST>Jorn Hoel</ARTIST>\n    <COUNTRY>Norway</COUNTRY>\n    <COMPANY>WEA</COMPANY>\n    <PRICE>7.90</PRICE>\n    <YEAR>1996</YEAR>\n  </CD>\n  <CD>\n    <TITLE>The very best of</TITLE>\n    <ARTIST>Cat Stevens</ARTIST>\n    <COUNTRY>UK</COUNTRY>\n    <COMPANY>Island</COMPANY>\n    <PRICE>8.90</PRICE>\n    <YEAR>1990</YEAR>\n  </CD>\n  <CD>\n    <TITLE>Stop</TITLE>\n    <ARTIST>Sam Brown</ARTIST>\n    <COUNTRY>UK</COUNTRY>\n    <COMPANY>A and M</COMPANY>\n    <PRICE>8.90</PRICE>\n    <YEAR>1988</YEAR>\n  </CD>\n  <CD>\n    <TITLE>Bridge of Spies</TITLE>\n    <ARTIST>T\'Pau</ARTIST>\n    <COUNTRY>UK</COUNTRY>\n    <COMPANY>Siren</COMPANY>\n    <PRICE>7.90</PRICE>\n    <YEAR>1987</YEAR>\n  </CD>\n  <CD>\n    <TITLE>Private Dancer</TITLE>\n    <ARTIST>Tina Turner</ARTIST>\n    <COUNTRY>UK</COUNTRY>\n    <COMPANY>Capitol</COMPANY>\n    <PRICE>8.90</PRICE>\n    <YEAR>1983</YEAR>\n  </CD>\n  <CD>\n    <TITLE>Midt om natten</TITLE>\n    <ARTIST>Kim Larsen</ARTIST>\n    <COUNTRY>EU</COUNTRY>\n    <COMPANY>Medley</COMPANY>\n    <PRICE>7.80</PRICE>\n    <YEAR>1983</YEAR>\n  </CD>\n  <CD>\n    <TITLE>Pavarotti Gala Concert</TITLE>\n    <ARTIST>Luciano Pavarotti</ARTIST>\n    <COUNTRY>UK</COUNTRY>\n    <COMPANY>DECCA</COMPANY>\n    <PRICE>9.90</PRICE>\n    <YEAR>1991</YEAR>\n  </CD>\n  <CD>\n    <TITLE>The dock of the bay</TITLE>\n    <ARTIST>Otis Redding</ARTIST>\n    <COUNTRY>USA</COUNTRY>\n    <COMPANY>Stax Records</COMPANY>\n    <PRICE>7.90</PRICE>\n    <YEAR>1968</YEAR>\n  </CD>\n  <CD>\n    <TITLE>Picture book</TITLE>\n    <ARTIST>Simply Red</ARTIST>\n    <COUNTRY>EU</COUNTRY>\n    <COMPANY>Elektra</COMPANY>\n    <PRICE>7.20</PRICE>\n    <YEAR>1985</YEAR>\n  </CD>\n  <CD>\n    <TITLE>Red</TITLE>\n    <ARTIST>The Communards</ARTIST>\n    <COUNTRY>UK</COUNTRY>\n    <COMPANY>London</COMPANY>\n    <PRICE>7.80</PRICE>\n    <YEAR>1987</YEAR>\n  </CD>\n  <CD>\n    <TITLE>Unchain my heart</TITLE>\n    <ARTIST>Joe Cocker</ARTIST>\n    <COUNTRY>USA</COUNTRY>\n    <COMPANY>EMI</COMPANY>\n    <PRICE>8.20</PRICE>\n    <YEAR>1987</YEAR>\n  </CD>\n</CATALOG>\n    ';
+var _ymtszw$elm_xml_decode$ExampleXml$note = '\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<note>\n  <to>Tove</to>\n  <from>Jani</from>\n  <heading>Reminder</heading>\n  <body>Don\'t forget me this weekend!</body>\n</note>\n    ';
+var _ymtszw$elm_xml_decode$ExampleXml$justRoot = '<root></root>';
+var _ymtszw$elm_xml_decode$Xml_Decode_Internal$escapeR = function (s) {
+	return A4(
+		_elm_lang$core$Regex$replace,
+		_elm_lang$core$Regex$All,
+		_elm_lang$core$Regex$regex('\''),
+		function (_p0) {
+			return '&apos;';
+		},
+		A4(
+			_elm_lang$core$Regex$replace,
+			_elm_lang$core$Regex$All,
+			_elm_lang$core$Regex$regex('\"'),
+			function (_p1) {
+				return '&quot;';
+			},
+			A4(
+				_elm_lang$core$Regex$replace,
+				_elm_lang$core$Regex$All,
+				_elm_lang$core$Regex$regex('>'),
+				function (_p2) {
+					return '&gt;';
+				},
+				A4(
+					_elm_lang$core$Regex$replace,
+					_elm_lang$core$Regex$All,
+					_elm_lang$core$Regex$regex('<'),
+					function (_p3) {
+						return '&lt;';
+					},
+					A4(
+						_elm_lang$core$Regex$replace,
+						_elm_lang$core$Regex$All,
+						_elm_lang$core$Regex$regex('&'),
+						function (_p4) {
+							return '&amp;';
+						},
+						s)))));
+};
+var _ymtszw$elm_xml_decode$Xml_Decode_Internal$escape = function (s) {
+	var reducer = function ($char) {
+		var _p5 = $char;
+		switch (_p5.valueOf()) {
+			case '&':
+				return _elm_lang$core$String$append('&amp;');
+			case '<':
+				return _elm_lang$core$String$append('&lt;');
+			case '>':
+				return _elm_lang$core$String$append('&gt;');
+			case '\"':
+				return _elm_lang$core$String$append('&quot;');
+			case '\'':
+				return _elm_lang$core$String$append('&apos;');
+			default:
+				return _elm_lang$core$String$cons(_p5);
+		}
+	};
+	return A3(_elm_lang$core$String$foldr, reducer, '', s);
+};
+var _ymtszw$elm_xml_decode$Xml_Decode_Internal$formatAttribute = function (attribute) {
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		_ymtszw$elm_xml_decode$Xml_Decode_Internal$escape(attribute.name),
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			'=\"',
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				_ymtszw$elm_xml_decode$Xml_Decode_Internal$escape(attribute.value),
+				'\"')));
+};
+var _ymtszw$elm_xml_decode$Xml_Decode_Internal$attributesToString = function (attrs) {
+	var _p6 = attrs;
+	if (_p6.ctor === '[]') {
+		return '';
+	} else {
+		return A2(
+			_elm_lang$core$Basics_ops['++'],
+			' ',
+			A2(
+				_elm_lang$core$String$join,
+				' ',
+				A2(_elm_lang$core$List$map, _ymtszw$elm_xml_decode$Xml_Decode_Internal$formatAttribute, attrs)));
+	}
+};
+var _ymtszw$elm_xml_decode$Xml_Decode_Internal$formatNode = function (node) {
+	var _p7 = node;
+	if (_p7.ctor === 'Element') {
+		var _p8 = _p7._0;
+		return A2(
+			_elm_lang$core$Basics_ops['++'],
+			'<',
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				_ymtszw$elm_xml_decode$Xml_Decode_Internal$escape(_p8),
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					_ymtszw$elm_xml_decode$Xml_Decode_Internal$attributesToString(_p7._1),
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						'>',
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							A2(
+								_elm_lang$core$String$join,
+								'',
+								A2(_elm_lang$core$List$map, _ymtszw$elm_xml_decode$Xml_Decode_Internal$formatNode, _p7._2)),
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								'</',
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									_ymtszw$elm_xml_decode$Xml_Decode_Internal$escape(_p8),
+									'>')))))));
+	} else {
+		return _ymtszw$elm_xml_decode$Xml_Decode_Internal$escape(_p7._0);
+	}
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$problemToString = function (reason) {
+	var _p0 = reason;
+	switch (_p0.ctor) {
+		case 'NodeNotFound':
+			return 'Node not found.';
+		case 'AttributeNotFound':
+			return A2(
+				_elm_lang$core$Basics_ops['++'],
+				'Attribute \'',
+				A2(_elm_lang$core$Basics_ops['++'], _p0._0, '\' not found.'));
+		case 'Duplicate':
+			return 'Multiple nodes found.';
+		default:
+			return _p0._0;
+	}
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$errorToString = function (error) {
+	var _p1 = error;
+	if (_p1.ctor === 'SimpleError') {
+		return _ymtszw$elm_xml_decode$Xml_Decode$problemToString(_p1._0);
+	} else {
+		return A2(
+			_elm_lang$core$Basics_ops['++'],
+			_ymtszw$elm_xml_decode$Xml_Decode$problemToString(_p1._2),
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					' At: /',
+					A2(_elm_lang$core$String$join, '/', _p1._0)),
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					', Node: ',
+					_ymtszw$elm_xml_decode$Xml_Decode_Internal$formatNode(_p1._1))));
+	}
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$hasName = F2(
+	function (name, node) {
+		var _p2 = node;
+		if (_p2.ctor === 'Element') {
+			return _elm_lang$core$Native_Utils.eq(name, _p2._0);
+		} else {
+			return false;
+		}
+	});
+var _ymtszw$elm_xml_decode$Xml_Decode$children = function (node) {
+	var _p3 = node;
+	if (_p3.ctor === 'Element') {
+		return _p3._2;
+	} else {
+		return {ctor: '[]'};
+	}
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$query = F2(
+	function (path_, nodes) {
+		query:
+		while (true) {
+			var _p4 = path_;
+			if (_p4.ctor === '[]') {
+				return nodes;
+			} else {
+				if (_p4._1.ctor === '[]') {
+					return A2(
+						_elm_lang$core$List$filter,
+						_ymtszw$elm_xml_decode$Xml_Decode$hasName(_p4._0),
+						nodes);
+				} else {
+					var _v5 = _p4._1,
+						_v6 = A2(
+						_elm_lang$core$List$concatMap,
+						_ymtszw$elm_xml_decode$Xml_Decode$children,
+						A2(
+							_elm_lang$core$List$filter,
+							_ymtszw$elm_xml_decode$Xml_Decode$hasName(_p4._0),
+							nodes));
+					path_ = _v5;
+					nodes = _v6;
+					continue query;
+				}
+			}
+		}
+	});
+var _ymtszw$elm_xml_decode$Xml_Decode$maybe = function (decoder) {
+	var maybify = function (result) {
+		var _p5 = result;
+		if (_p5.ctor === 'Ok') {
+			return _elm_lang$core$Result$Ok(
+				_elm_lang$core$Maybe$Just(_p5._0));
+		} else {
+			return _elm_lang$core$Result$Ok(_elm_lang$core$Maybe$Nothing);
+		}
+	};
+	return function (_p6) {
+		return maybify(
+			decoder(_p6));
+	};
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$withDefault = F2(
+	function ($default, decoder) {
+		var applyDefault = function (result) {
+			var _p7 = result;
+			if (_p7.ctor === 'Ok') {
+				return result;
+			} else {
+				return _elm_lang$core$Result$Ok($default);
+			}
+		};
+		return function (_p8) {
+			return applyDefault(
+				decoder(_p8));
+		};
+	});
+var _ymtszw$elm_xml_decode$Xml_Decode$map2 = F4(
+	function (valueGen, decoderA, decoderB, node) {
+		return A3(
+			_elm_lang$core$Result$map2,
+			valueGen,
+			decoderA(node),
+			decoderB(node));
+	});
+var _ymtszw$elm_xml_decode$Xml_Decode$map = F2(
+	function (valueGen, decoder) {
+		return function (_p9) {
+			return A2(
+				_elm_lang$core$Result$map,
+				valueGen,
+				decoder(_p9));
+		};
+	});
+var _ymtszw$elm_xml_decode$Xml_Decode$andThen = F3(
+	function (decoderBGen, decoderA, node) {
+		var _p10 = decoderA(node);
+		if (_p10.ctor === 'Ok') {
+			return A2(decoderBGen, _p10._0, node);
+		} else {
+			return _elm_lang$core$Result$Err(_p10._0);
+		}
+	});
+var _ymtszw$elm_xml_decode$Xml_Decode$fail = function (error) {
+	return _elm_lang$core$Basics$always(
+		_elm_lang$core$Result$Err(error));
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$succeed = function (a) {
+	return _elm_lang$core$Basics$always(
+		_elm_lang$core$Result$Ok(a));
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$lazy = A2(
+	_elm_lang$core$Basics$flip,
+	_ymtszw$elm_xml_decode$Xml_Decode$andThen,
+	_ymtszw$elm_xml_decode$Xml_Decode$succeed(
+		{ctor: '_Tuple0'}));
+var _ymtszw$elm_xml_decode$Xml_Decode$accumlateOk = F2(
+	function (result, acc) {
+		var _p11 = result;
+		if (_p11.ctor === 'Err') {
+			return acc;
+		} else {
+			return A2(
+				_elm_lang$core$Result$map,
+				F2(
+					function (x, y) {
+						return {ctor: '::', _0: x, _1: y};
+					})(_p11._0),
+				acc);
+		}
+	});
+var _ymtszw$elm_xml_decode$Xml_Decode$leakyList = function (decoder) {
+	return A2(
+		_elm_lang$core$List$foldr,
+		function (_p12) {
+			return _ymtszw$elm_xml_decode$Xml_Decode$accumlateOk(
+				decoder(_p12));
+		},
+		_elm_lang$core$Result$Ok(
+			{ctor: '[]'}));
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$fetchAttributeValue = F2(
+	function (name_, attrs) {
+		fetchAttributeValue:
+		while (true) {
+			var _p13 = attrs;
+			if (_p13.ctor === '[]') {
+				return _elm_lang$core$Maybe$Nothing;
+			} else {
+				if (_elm_lang$core$Native_Utils.eq(_p13._0.name, name_)) {
+					return _elm_lang$core$Maybe$Just(_p13._0.value);
+				} else {
+					var _v12 = name_,
+						_v13 = _p13._1;
+					name_ = _v12;
+					attrs = _v13;
+					continue fetchAttributeValue;
+				}
+			}
+		}
+	});
+var _ymtszw$elm_xml_decode$Xml_Decode$toBool = function (str) {
+	var _p14 = str;
+	switch (_p14) {
+		case 'true':
+			return _elm_lang$core$Result$Ok(true);
+		case '1':
+			return _elm_lang$core$Result$Ok(true);
+		case 'false':
+			return _elm_lang$core$Result$Ok(false);
+		case '0':
+			return _elm_lang$core$Result$Ok(false);
+		default:
+			return _elm_lang$core$Result$Err('Not a valid boolean value.');
+	}
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$decodeXml = F2(
+	function (decoder, _p15) {
+		var _p16 = _p15;
+		return decoder(_p16.root);
+	});
+var _ymtszw$elm_xml_decode$Xml_Decode$decodeString = function (decoder) {
+	var decodeAndMapError = function (_p17) {
+		return A2(
+			_elm_lang$core$Result$mapError,
+			_ymtszw$elm_xml_decode$Xml_Decode$errorToString,
+			A2(_ymtszw$elm_xml_decode$Xml_Decode$decodeXml, decoder, _p17));
+	};
+	return function (_p18) {
+		return A2(
+			_elm_lang$core$Result$andThen,
+			decodeAndMapError,
+			A2(
+				_elm_lang$core$Result$mapError,
+				_elm_lang$core$Basics$toString,
+				_jinjor$elm_xml_parser$XmlParser$parse(_p18)));
+	};
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$run = _ymtszw$elm_xml_decode$Xml_Decode$decodeString;
+var _ymtszw$elm_xml_decode$Xml_Decode$DetailedError = F3(
+	function (a, b, c) {
+		return {ctor: 'DetailedError', _0: a, _1: b, _2: c};
+	});
+var _ymtszw$elm_xml_decode$Xml_Decode$addPathAndNode = F3(
+	function (path_, node, error) {
+		var _p19 = error;
+		if (_p19.ctor === 'SimpleError') {
+			return A3(_ymtszw$elm_xml_decode$Xml_Decode$DetailedError, path_, node, _p19._0);
+		} else {
+			return A3(
+				_ymtszw$elm_xml_decode$Xml_Decode$DetailedError,
+				A2(_elm_lang$core$Basics_ops['++'], path_, _p19._0),
+				_p19._1,
+				_p19._2);
+		}
+	});
+var _ymtszw$elm_xml_decode$Xml_Decode$listReducer = F3(
+	function (decoder, node, accResult) {
+		return A2(
+			_elm_lang$core$Result$mapError,
+			A2(
+				_ymtszw$elm_xml_decode$Xml_Decode$addPathAndNode,
+				{ctor: '[]'},
+				node),
+			A3(
+				_elm_lang$core$Result$map2,
+				_elm_lang$core$Basics$flip(
+					F2(
+						function (x, y) {
+							return {ctor: '::', _0: x, _1: y};
+						})),
+				accResult,
+				decoder(node)));
+	});
+var _ymtszw$elm_xml_decode$Xml_Decode$list = function (decoder) {
+	return A2(
+		_elm_lang$core$List$foldr,
+		_ymtszw$elm_xml_decode$Xml_Decode$listReducer(decoder),
+		_elm_lang$core$Result$Ok(
+			{ctor: '[]'}));
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$decodeWithErrorContext = F4(
+	function (path_, node, listDecoder, nodes) {
+		var _p20 = listDecoder(nodes);
+		if (_p20.ctor === 'Ok') {
+			return _elm_lang$core$Result$Ok(_p20._0);
+		} else {
+			return _elm_lang$core$Result$Err(
+				A3(_ymtszw$elm_xml_decode$Xml_Decode$addPathAndNode, path_, node, _p20._0));
+		}
+	});
+var _ymtszw$elm_xml_decode$Xml_Decode$path = F3(
+	function (path_, listDecoder, node) {
+		return A4(
+			_ymtszw$elm_xml_decode$Xml_Decode$decodeWithErrorContext,
+			path_,
+			node,
+			listDecoder,
+			A2(
+				_ymtszw$elm_xml_decode$Xml_Decode$query,
+				path_,
+				_ymtszw$elm_xml_decode$Xml_Decode$children(node)));
+	});
+var _ymtszw$elm_xml_decode$Xml_Decode$SimpleError = function (a) {
+	return {ctor: 'SimpleError', _0: a};
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$Unparsable = function (a) {
+	return {ctor: 'Unparsable', _0: a};
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$string = function (node) {
+	var _p21 = node;
+	if (_p21.ctor === 'Text') {
+		return _elm_lang$core$Result$Ok(_p21._0);
+	} else {
+		if (((_p21._2.ctor === '::') && (_p21._2._0.ctor === 'Text')) && (_p21._2._1.ctor === '[]')) {
+			return _elm_lang$core$Result$Ok(_p21._2._0._0);
+		} else {
+			return _elm_lang$core$Result$Err(
+				A3(
+					_ymtszw$elm_xml_decode$Xml_Decode$DetailedError,
+					{ctor: '[]'},
+					node,
+					_ymtszw$elm_xml_decode$Xml_Decode$Unparsable('The node is not a simple text node.')));
+		}
+	}
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$mapParseError = _elm_lang$core$Result$mapError(
+	function (_p22) {
+		return _ymtszw$elm_xml_decode$Xml_Decode$SimpleError(
+			_ymtszw$elm_xml_decode$Xml_Decode$Unparsable(_p22));
+	});
+var _ymtszw$elm_xml_decode$Xml_Decode$int = function (_p23) {
+	return A2(
+		_elm_lang$core$Result$andThen,
+		function (_p24) {
+			return _ymtszw$elm_xml_decode$Xml_Decode$mapParseError(
+				_elm_lang$core$String$toInt(_p24));
+		},
+		_ymtszw$elm_xml_decode$Xml_Decode$string(_p23));
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$float = function (_p25) {
+	return A2(
+		_elm_lang$core$Result$andThen,
+		function (_p26) {
+			return _ymtszw$elm_xml_decode$Xml_Decode$mapParseError(
+				_elm_lang$core$String$toFloat(_p26));
+		},
+		_ymtszw$elm_xml_decode$Xml_Decode$string(_p25));
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$bool = function (_p27) {
+	return A2(
+		_elm_lang$core$Result$andThen,
+		function (_p28) {
+			return _ymtszw$elm_xml_decode$Xml_Decode$mapParseError(
+				_ymtszw$elm_xml_decode$Xml_Decode$toBool(_p28));
+		},
+		_ymtszw$elm_xml_decode$Xml_Decode$string(_p27));
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$date = function (_p29) {
+	return A2(
+		_elm_lang$core$Result$andThen,
+		function (_p30) {
+			return _ymtszw$elm_xml_decode$Xml_Decode$mapParseError(
+				_elm_lang$core$Date$fromString(_p30));
+		},
+		_ymtszw$elm_xml_decode$Xml_Decode$string(_p29));
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$Duplicate = {ctor: 'Duplicate'};
+var _ymtszw$elm_xml_decode$Xml_Decode$AttributeNotFound = function (a) {
+	return {ctor: 'AttributeNotFound', _0: a};
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$stringAttr = F2(
+	function (name_, node) {
+		var error = A3(
+			_ymtszw$elm_xml_decode$Xml_Decode$DetailedError,
+			{ctor: '[]'},
+			node,
+			_ymtszw$elm_xml_decode$Xml_Decode$AttributeNotFound(name_));
+		var _p31 = node;
+		if (_p31.ctor === 'Text') {
+			return _elm_lang$core$Result$Err(error);
+		} else {
+			return A2(
+				_elm_lang$core$Result$fromMaybe,
+				error,
+				A2(_ymtszw$elm_xml_decode$Xml_Decode$fetchAttributeValue, name_, _p31._1));
+		}
+	});
+var _ymtszw$elm_xml_decode$Xml_Decode$intAttr = function (name_) {
+	return function (_p32) {
+		return A2(
+			_elm_lang$core$Result$andThen,
+			function (_p33) {
+				return _ymtszw$elm_xml_decode$Xml_Decode$mapParseError(
+					_elm_lang$core$String$toInt(_p33));
+			},
+			A2(_ymtszw$elm_xml_decode$Xml_Decode$stringAttr, name_, _p32));
+	};
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$floatAttr = function (name_) {
+	return function (_p34) {
+		return A2(
+			_elm_lang$core$Result$andThen,
+			function (_p35) {
+				return _ymtszw$elm_xml_decode$Xml_Decode$mapParseError(
+					_elm_lang$core$String$toFloat(_p35));
+			},
+			A2(_ymtszw$elm_xml_decode$Xml_Decode$stringAttr, name_, _p34));
+	};
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$boolAttr = function (name_) {
+	return function (_p36) {
+		return A2(
+			_elm_lang$core$Result$andThen,
+			function (_p37) {
+				return _ymtszw$elm_xml_decode$Xml_Decode$mapParseError(
+					_ymtszw$elm_xml_decode$Xml_Decode$toBool(_p37));
+			},
+			A2(_ymtszw$elm_xml_decode$Xml_Decode$stringAttr, name_, _p36));
+	};
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$dateAttr = function (name_) {
+	return function (_p38) {
+		return A2(
+			_elm_lang$core$Result$andThen,
+			function (_p39) {
+				return _ymtszw$elm_xml_decode$Xml_Decode$mapParseError(
+					_elm_lang$core$Date$fromString(_p39));
+			},
+			A2(_ymtszw$elm_xml_decode$Xml_Decode$stringAttr, name_, _p38));
+	};
+};
+var _ymtszw$elm_xml_decode$Xml_Decode$NodeNotFound = {ctor: 'NodeNotFound'};
+var _ymtszw$elm_xml_decode$Xml_Decode$single = F2(
+	function (decoder, nodes) {
+		var _p40 = nodes;
+		if (_p40.ctor === '[]') {
+			return _elm_lang$core$Result$Err(
+				_ymtszw$elm_xml_decode$Xml_Decode$SimpleError(_ymtszw$elm_xml_decode$Xml_Decode$NodeNotFound));
+		} else {
+			if (_p40._1.ctor === '[]') {
+				return decoder(_p40._0);
+			} else {
+				return _elm_lang$core$Result$Err(
+					_ymtszw$elm_xml_decode$Xml_Decode$SimpleError(_ymtszw$elm_xml_decode$Xml_Decode$Duplicate));
+			}
+		}
+	});
+var _ymtszw$elm_xml_decode$Xml_Decode_Extra$andMap = _ymtszw$elm_xml_decode$Xml_Decode$map2(
+	F2(
+		function (x, y) {
+			return y(x);
+		}));
+var _ymtszw$elm_xml_decode$Xml_Decode_Extra_ops = _ymtszw$elm_xml_decode$Xml_Decode_Extra_ops || {};
+_ymtszw$elm_xml_decode$Xml_Decode_Extra_ops['|:'] = _elm_lang$core$Basics$flip(_ymtszw$elm_xml_decode$Xml_Decode_Extra$andMap);
+var _ymtszw$elm_xml_decode$Benchmarks$parse = function (xmlStr) {
+	var _p0 = _jinjor$elm_xml_parser$XmlParser$parse(xmlStr);
+	if (_p0.ctor === 'Ok') {
+		return _p0._0;
+	} else {
+		return _elm_lang$core$Native_Utils.crashCase(
+			'Benchmarks',
+			{
+				start: {line: 74, column: 5},
+				end: {line: 79, column: 44}
+			},
+			_p0)('Should not happen');
+	}
+};
+var _ymtszw$elm_xml_decode$Benchmarks$cdCatalogXml = _ymtszw$elm_xml_decode$Benchmarks$parse(_ymtszw$elm_xml_decode$ExampleXml$cdCatalog);
+var _ymtszw$elm_xml_decode$Benchmarks$cdCatalogDecoder = A2(
+	_ymtszw$elm_xml_decode$Xml_Decode_Extra_ops['|:'],
+	A2(
+		_ymtszw$elm_xml_decode$Xml_Decode_Extra_ops['|:'],
+		A2(
+			_ymtszw$elm_xml_decode$Xml_Decode_Extra_ops['|:'],
+			A2(
+				_ymtszw$elm_xml_decode$Xml_Decode_Extra_ops['|:'],
+				A2(
+					_ymtszw$elm_xml_decode$Xml_Decode_Extra_ops['|:'],
+					A2(
+						_ymtszw$elm_xml_decode$Xml_Decode_Extra_ops['|:'],
+						_ymtszw$elm_xml_decode$Xml_Decode$succeed(
+							F6(
+								function (v0, v1, v2, v3, v4, v5) {
+									return {ctor: '_Tuple6', _0: v0, _1: v1, _2: v2, _3: v3, _4: v4, _5: v5};
+								})),
+						A2(
+							_ymtszw$elm_xml_decode$Xml_Decode$path,
+							{
+								ctor: '::',
+								_0: 'TITLE',
+								_1: {ctor: '[]'}
+							},
+							_ymtszw$elm_xml_decode$Xml_Decode$single(_ymtszw$elm_xml_decode$Xml_Decode$string))),
+					A2(
+						_ymtszw$elm_xml_decode$Xml_Decode$path,
+						{
+							ctor: '::',
+							_0: 'ARTIST',
+							_1: {ctor: '[]'}
+						},
+						_ymtszw$elm_xml_decode$Xml_Decode$single(_ymtszw$elm_xml_decode$Xml_Decode$string))),
+				A2(
+					_ymtszw$elm_xml_decode$Xml_Decode$path,
+					{
+						ctor: '::',
+						_0: 'COUNTRY',
+						_1: {ctor: '[]'}
+					},
+					_ymtszw$elm_xml_decode$Xml_Decode$single(_ymtszw$elm_xml_decode$Xml_Decode$string))),
+			A2(
+				_ymtszw$elm_xml_decode$Xml_Decode$path,
+				{
+					ctor: '::',
+					_0: 'COMPANY',
+					_1: {ctor: '[]'}
+				},
+				_ymtszw$elm_xml_decode$Xml_Decode$single(_ymtszw$elm_xml_decode$Xml_Decode$string))),
+		A2(
+			_ymtszw$elm_xml_decode$Xml_Decode$path,
+			{
+				ctor: '::',
+				_0: 'PRICE',
+				_1: {ctor: '[]'}
+			},
+			_ymtszw$elm_xml_decode$Xml_Decode$single(_ymtszw$elm_xml_decode$Xml_Decode$float))),
+	A2(
+		_ymtszw$elm_xml_decode$Xml_Decode$path,
+		{
+			ctor: '::',
+			_0: 'YEAR',
 			_1: {ctor: '[]'}
-		});
-}();
+		},
+		_ymtszw$elm_xml_decode$Xml_Decode$single(_ymtszw$elm_xml_decode$Xml_Decode$int)));
+var _ymtszw$elm_xml_decode$Benchmarks$noteXml = _ymtszw$elm_xml_decode$Benchmarks$parse(_ymtszw$elm_xml_decode$ExampleXml$note);
+var _ymtszw$elm_xml_decode$Benchmarks$noteDecoder = A2(
+	_ymtszw$elm_xml_decode$Xml_Decode_Extra_ops['|:'],
+	A2(
+		_ymtszw$elm_xml_decode$Xml_Decode_Extra_ops['|:'],
+		A2(
+			_ymtszw$elm_xml_decode$Xml_Decode_Extra_ops['|:'],
+			A2(
+				_ymtszw$elm_xml_decode$Xml_Decode_Extra_ops['|:'],
+				_ymtszw$elm_xml_decode$Xml_Decode$succeed(
+					F4(
+						function (v0, v1, v2, v3) {
+							return {ctor: '_Tuple4', _0: v0, _1: v1, _2: v2, _3: v3};
+						})),
+				A2(
+					_ymtszw$elm_xml_decode$Xml_Decode$path,
+					{
+						ctor: '::',
+						_0: 'to',
+						_1: {ctor: '[]'}
+					},
+					_ymtszw$elm_xml_decode$Xml_Decode$single(_ymtszw$elm_xml_decode$Xml_Decode$string))),
+			A2(
+				_ymtszw$elm_xml_decode$Xml_Decode$path,
+				{
+					ctor: '::',
+					_0: 'from',
+					_1: {ctor: '[]'}
+				},
+				_ymtszw$elm_xml_decode$Xml_Decode$single(_ymtszw$elm_xml_decode$Xml_Decode$string))),
+		A2(
+			_ymtszw$elm_xml_decode$Xml_Decode$path,
+			{
+				ctor: '::',
+				_0: 'heading',
+				_1: {ctor: '[]'}
+			},
+			_ymtszw$elm_xml_decode$Xml_Decode$single(_ymtszw$elm_xml_decode$Xml_Decode$string))),
+	A2(
+		_ymtszw$elm_xml_decode$Xml_Decode$path,
+		{
+			ctor: '::',
+			_0: 'body',
+			_1: {ctor: '[]'}
+		},
+		_ymtszw$elm_xml_decode$Xml_Decode$single(_ymtszw$elm_xml_decode$Xml_Decode$string)));
+var _ymtszw$elm_xml_decode$Benchmarks$escapableString = ' \'<ab&cd>\' ';
+var _ymtszw$elm_xml_decode$Benchmarks$suite = A2(
+	_BrianHicks$elm_benchmark$Benchmark$describe,
+	'Components of elm-xml-decode',
+	{
+		ctor: '::',
+		_0: A2(
+			_BrianHicks$elm_benchmark$Benchmark$describe,
+			'Parsing minimal XML',
+			{
+				ctor: '::',
+				_0: A2(
+					_BrianHicks$elm_benchmark$Benchmark$benchmark,
+					'elm-xml-parser (using elm-tools/parser)',
+					function (_p2) {
+						return _jinjor$elm_xml_parser$XmlParser$parse(_ymtszw$elm_xml_decode$ExampleXml$justRoot);
+					}),
+				_1: {ctor: '[]'}
+			}),
+		_1: {
+			ctor: '::',
+			_0: A5(
+				_BrianHicks$elm_benchmark$Benchmark$compare,
+				'Escape CDATA for error dump',
+				'escape (char-based)',
+				function (_p3) {
+					return _ymtszw$elm_xml_decode$Xml_Decode_Internal$escape(_ymtszw$elm_xml_decode$Benchmarks$escapableString);
+				},
+				'escapeR (regex-based)',
+				function (_p4) {
+					return _ymtszw$elm_xml_decode$Xml_Decode_Internal$escapeR(_ymtszw$elm_xml_decode$Benchmarks$escapableString);
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_BrianHicks$elm_benchmark$Benchmark$describe,
+					'Decode actual XmlParser.Xml',
+					{
+						ctor: '::',
+						_0: A2(
+							_BrianHicks$elm_benchmark$Benchmark$benchmark,
+							'decode note.xml (small)',
+							function (_p5) {
+								return A2(_ymtszw$elm_xml_decode$Xml_Decode$decodeXml, _ymtszw$elm_xml_decode$Benchmarks$noteDecoder, _ymtszw$elm_xml_decode$Benchmarks$noteXml);
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_BrianHicks$elm_benchmark$Benchmark$benchmark,
+								'decode cd_catalog.xml (large)',
+								function (_p6) {
+									return A2(
+										_ymtszw$elm_xml_decode$Xml_Decode$decodeXml,
+										A2(
+											_ymtszw$elm_xml_decode$Xml_Decode$path,
+											{
+												ctor: '::',
+												_0: 'CD',
+												_1: {ctor: '[]'}
+											},
+											_ymtszw$elm_xml_decode$Xml_Decode$list(_ymtszw$elm_xml_decode$Benchmarks$cdCatalogDecoder)),
+										_ymtszw$elm_xml_decode$Benchmarks$cdCatalogXml);
+								}),
+							_1: {ctor: '[]'}
+						}
+					}),
+				_1: {ctor: '[]'}
+			}
+		}
+	});
 var _ymtszw$elm_xml_decode$Benchmarks$main = _BrianHicks$elm_benchmark$Benchmark_Runner$program(_ymtszw$elm_xml_decode$Benchmarks$suite)();
 var Elm = {};
 Elm['Benchmarks'] = Elm['Benchmarks'] || {};
