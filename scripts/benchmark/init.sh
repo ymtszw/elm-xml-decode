@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -eo pipefail
-mkdir -p benchmarks
-node "$(dirname "$0")/init.js"
+if [[ ! "$1" = "--install-only" ]]; then
+  mkdir -p benchmarks
+  node "$(dirname "$0")/init.js"
+fi
 (
   cd benchmarks
   "$(npm bin)/elm-package" install

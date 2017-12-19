@@ -17,6 +17,7 @@
     "docs": "elm-make --docs=docs.json",
     "analyse": "elm-analyse",
     "bench:compile": "./scripts/benchmark/compile.sh",
+    "bench:install": "./scripts/benchmark/init.sh --install-only",
     "bench:init": "./scripts/benchmark/init.sh"
   },
   "repository": {

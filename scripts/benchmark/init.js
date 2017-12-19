@@ -25,4 +25,4 @@ const benchJson = Object.assign(rootJson, {
   'source-directories': newSourceDirs
 })
 
-fs.writeFileSync(path.join('benchmarks', 'elm-package.json'), JSON.stringify(benchJson, null, 4))
+fs.writeFileSync(path.join('benchmarks', 'elm-package.json'), JSON.stringify(benchJson, null, 4) + '\n')
