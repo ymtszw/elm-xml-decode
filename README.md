@@ -144,7 +144,6 @@ Sample result (on my MacBookPro early 2015):
 - CPU: Core i5 2.7GHz
 - Mem: DDR3 8GB 1867MHz
 - Google Chrome 63.0.3239.84 64bit
-- Using [examples in W3School](https://www.w3schools.com/xml/xml_examples.asp)
 
 ![bench](./benchmark.png)
 
