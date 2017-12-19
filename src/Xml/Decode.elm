@@ -244,16 +244,28 @@ If you want to extract values from node attribute, use [`stringAttr`](#stringAtt
 
 -}
 string : Decoder String
-string node =
-    case node of
-        Text str ->
-            Ok str
+string =
+    cdata Ok
 
-        Element _ _ [ Text str ] ->
-            Ok str
 
-        _ ->
-            Err <| DetailedError [] node (Unparsable "The node is not a simple text node.")
+cdata : (String -> Result String a) -> Decoder a
+cdata generator node =
+    let
+        unparsable =
+            DetailedError [] node << Unparsable
+
+        gen =
+            generator >> Result.mapError unparsable
+    in
+        case node of
+            Text str ->
+                gen str
+
+            Element _ _ [ Text str ] ->
+                gen str
+
+            _ ->
+                Err (unparsable "The node is not a simple text node.")
 
 
 {-| Similar to [`string`](#string), but also tries to convert `String` to `Int`.
@@ -262,17 +274,12 @@ string node =
     --> Ok 1
 
     run int "<root>value</root>"
-    --> Err "could not convert string 'value' to an Int"
+    --> Err "could not convert string 'value' to an Int At: /, Node: <root>value</root>"
 
 -}
 int : Decoder Int
 int =
-    string >> Result.andThen (String.toInt >> mapParseError)
-
-
-mapParseError : Result String a -> Result Error a
-mapParseError =
-    Result.mapError (SimpleError << Unparsable)
+    cdata String.toInt
 
 
 {-| Decodes to `Float`.
@@ -281,12 +288,12 @@ mapParseError =
     --> Ok 1.0
 
     run float "<root>value</root>"
-    --> Err "could not convert string 'value' to a Float"
+    --> Err "could not convert string 'value' to a Float At: /, Node: <root>value</root>"
 
 -}
 float : Decoder Float
 float =
-    string >> Result.andThen (String.toFloat >> mapParseError)
+    cdata String.toFloat
 
 
 {-| Decodes to `Bool`.
@@ -306,12 +313,12 @@ We follow this specification, case-sensitively.
     --> Ok True
 
     run bool "<root>value</root>"
-    --> Err "Not a valid boolean value."
+    --> Err "Not a valid boolean value. At: /, Node: <root>value</root>"
 
 -}
 bool : Decoder Bool
 bool =
-    string >> Result.andThen (toBool >> mapParseError)
+    cdata toBool
 
 
 toBool : String -> Result String Bool
@@ -345,7 +352,7 @@ toBool str =
 -}
 date : Decoder Date
 date =
-    string >> Result.andThen (Date.fromString >> mapParseError)
+    cdata Date.fromString
 
 
 
@@ -366,19 +373,28 @@ Fails if the node does not have specified attribute.
 
 -}
 stringAttr : String -> Decoder String
-stringAttr name_ node =
+stringAttr name_ =
+    cdataAttr name_ Ok
+
+
+cdataAttr : String -> (String -> Result String a) -> Decoder a
+cdataAttr name_ generator node =
     let
-        error =
+        notFound =
             DetailedError [] node (AttributeNotFound name_)
+
+        gen =
+            generator >> Result.mapError (DetailedError [] node << Unparsable)
     in
         case node of
             Text _ ->
-                Err error
+                Err notFound
 
             Element _ attrs _ ->
                 attrs
                     |> fetchAttributeValue name_
-                    |> Result.fromMaybe error
+                    |> Result.fromMaybe notFound
+                    |> Result.andThen gen
 
 
 fetchAttributeValue : String -> List Attribute -> Maybe String
@@ -400,12 +416,12 @@ fetchAttributeValue name_ attrs =
     --> Ok 1
 
     run (intAttr "attr") "<root attr='value'></root>"
-    --> Err "could not convert string 'value' to an Int"
+    --> Err "could not convert string 'value' to an Int At: /, Node: <root attr=\"value\"></root>"
 
 -}
 intAttr : String -> Decoder Int
 intAttr name_ =
-    stringAttr name_ >> Result.andThen (String.toInt >> mapParseError)
+    cdataAttr name_ String.toInt
 
 
 {-| Decodes an attribute value into `Float`.
@@ -414,12 +430,12 @@ intAttr name_ =
     --> Ok 1.5
 
     run (floatAttr "attr") "<root attr='value'></root>"
-    --> Err "could not convert string 'value' to a Float"
+    --> Err "could not convert string 'value' to a Float At: /, Node: <root attr=\"value\"></root>"
 
 -}
 floatAttr : String -> Decoder Float
 floatAttr name_ =
-    stringAttr name_ >> Result.andThen (String.toFloat >> mapParseError)
+    cdataAttr name_ String.toFloat
 
 
 {-| Decodes an attribute value into `Bool`.
@@ -428,19 +444,19 @@ floatAttr name_ =
     --> Ok True
 
     run (boolAttr "attr") "<root attr='value'></root>"
-    --> Err "Not a valid boolean value."
+    --> Err "Not a valid boolean value. At: /, Node: <root attr=\"value\"></root>"
 
 -}
 boolAttr : String -> Decoder Bool
 boolAttr name_ =
-    stringAttr name_ >> Result.andThen (toBool >> mapParseError)
+    cdataAttr name_ toBool
 
 
 {-| Decodes an attribute value into `Date`.
 -}
 dateAttr : String -> Decoder Date
 dateAttr name_ =
-    stringAttr name_ >> Result.andThen (Date.fromString >> mapParseError)
+    cdataAttr name_ Date.fromString
 
 
 
@@ -485,9 +501,6 @@ This [`ListDecoder`](#ListDecoder) fails if any incoming items cannot be decoded
 
     run (path [ "tag" ] (list string)) "<root><tag>string1</tag><tag>string2</tag></root>"
     --> Ok [ "string1", "string2" ]
-
-    run (path [ "tag" ] (list string)) "<root><tag>string1</tag><tag><nested>string2</nested></tag></root>"
-    --> Err "The node is not a simple text node. At: /tag, Node: <tag><nested>string2</nested></tag>"
 
 -}
 list : Decoder a -> ListDecoder (List a)
@@ -697,6 +710,11 @@ For instance, to work with an XML document like:
 You should specify:
 
     path ["Path", "Target"] (single string)
+
+Decoders will report errors with path at which error happened as well as nearest node:
+
+    run (path [ "tag", "nested" ] (single int)) "<root><tag><nested>string1</nested></tag></root>"
+    --> Err "could not convert string 'string1' to an Int At: /tag/nested, Node: <nested>string1</nested>"
 
 -}
 path : List String -> ListDecoder a -> Decoder a
