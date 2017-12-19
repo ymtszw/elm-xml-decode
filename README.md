@@ -123,14 +123,13 @@ npm run analyse    # Analyse Elm code
 
 ## Benchmark: Are they efficient? Are they fast?
 
-Benchmarks are worked on under `benchmarks/` directory. Still work-in-progress.
-Should be available [here][bench] when prepared.
-
-[bench]: https://ymtszw.github.io/elm-xml-decode/
-
-Using [BrianHicks/elm-benchmark][eb].
+Benchmark codes can be found in `benchmarks/` directory.
+Using [BrianHicks/elm-benchmark][eb] and [examples in W3School][w3s].
+Available [here][bench] as a static web page.
 
 [eb]: http://package.elm-lang.org/packages/BrianHicks/elm-benchmark/latest/Benchmark
+[bench]: https://ymtszw.github.io/elm-xml-decode/
+[w3s]: https://www.w3schools.com/xml/xml_examples.asp
 
 Develop:
 
@@ -139,6 +138,26 @@ npm run bench:init
 npm run bench:compile
 open docs/index.html
 ```
+
+Sample result (on my MacBookPro early 2015):
+
+- CPU: Core i5 2.7GHz
+- Mem: DDR3 8GB 1867MHz
+- Google Chrome 63.0.3239.84 64bit
+- Using [examples in W3School](https://www.w3schools.com/xml/xml_examples.asp)
+
+![bench](./benchmark.png)
+
+[jinjor/elm-xml-parser][exp] is using [elm-tools/parser][etp],
+which currently suffers from some performance issues (possibly related to [this comment][issue]?).
+We hope the underlying issue will be resolved in future versions of Elm and/or those dependencies.
+
+[etp]: http://package.elm-lang.org/packages/elm-tools/parser/latest
+[issue]: https://github.com/elm-tools/parser/issues/15#issuecomment-336223879
+
+Although decoding part should practically be fast enough (see decode result of note.xml and cd_catalog.xml).
+
+Looking forward to see similar benchmarks from other related works!!
 
 ## License
 
