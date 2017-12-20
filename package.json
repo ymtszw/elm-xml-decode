@@ -5,6 +5,7 @@
   "devDependencies": {
     "elm": "^0.18.0",
     "elm-analyse": "^0.12.1",
+    "elm-benckmark": "github:ymtszw/elm-benchmark-helper",
     "elm-test": "^0.18.10",
     "elm-verify-examples": "^1.0.2",
     "watch": "^1.0.2"
@@ -16,9 +17,7 @@
     "package": "elm-package",
     "docs": "elm-make --docs=docs.json",
     "analyse": "elm-analyse",
-    "bench:compile": "./scripts/benchmark/compile.sh",
-    "bench:install": "./scripts/benchmark/init.sh --install-only",
-    "bench:init": "./scripts/benchmark/init.sh"
+    "bench": "elm-benchmark"
   },
   "repository": {
     "type": "git",
