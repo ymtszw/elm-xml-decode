@@ -20926,7 +20926,7 @@ var _BrianHicks$elm_benchmark$Benchmark_Runner_Report$percentChange = F2(
 				_elm_lang$core$Time$second,
 				_BrianHicks$elm_trend$Trend_Linear$line(_p2));
 		};
-		var change = (rps($new) - rps(old)) / rps($new);
+		var change = (rps($new) - rps(old)) / rps(old);
 		var sign = (_elm_lang$core$Native_Utils.cmp(change, 0) > 0) ? '+' : '';
 		return _elm_lang$core$Native_Utils.eq(old, $new) ? A2(_BrianHicks$elm_benchmark$Benchmark_Runner_Report$cell, _BrianHicks$elm_benchmark$Benchmark_Runner_Report$Numeric, '-') : A2(
 			_BrianHicks$elm_benchmark$Benchmark_Runner_Report$cell,
@@ -24085,139 +24085,99 @@ var _ymtszw$elm_xml_decode$Xml_Decode$SimpleError = function (a) {
 var _ymtszw$elm_xml_decode$Xml_Decode$Unparsable = function (a) {
 	return {ctor: 'Unparsable', _0: a};
 };
-var _ymtszw$elm_xml_decode$Xml_Decode$string = function (node) {
-	var _p21 = node;
-	if (_p21.ctor === 'Text') {
-		return _elm_lang$core$Result$Ok(_p21._0);
-	} else {
-		if (((_p21._2.ctor === '::') && (_p21._2._0.ctor === 'Text')) && (_p21._2._1.ctor === '[]')) {
-			return _elm_lang$core$Result$Ok(_p21._2._0._0);
+var _ymtszw$elm_xml_decode$Xml_Decode$cdata = F2(
+	function (generator, node) {
+		var unparsable = function (_p21) {
+			return A3(
+				_ymtszw$elm_xml_decode$Xml_Decode$DetailedError,
+				{ctor: '[]'},
+				node,
+				_ymtszw$elm_xml_decode$Xml_Decode$Unparsable(_p21));
+		};
+		var gen = function (_p22) {
+			return A2(
+				_elm_lang$core$Result$mapError,
+				unparsable,
+				generator(_p22));
+		};
+		var _p23 = node;
+		if (_p23.ctor === 'Text') {
+			return gen(_p23._0);
 		} else {
-			return _elm_lang$core$Result$Err(
-				A3(
-					_ymtszw$elm_xml_decode$Xml_Decode$DetailedError,
-					{ctor: '[]'},
-					node,
-					_ymtszw$elm_xml_decode$Xml_Decode$Unparsable('The node is not a simple text node.')));
+			if (((_p23._2.ctor === '::') && (_p23._2._0.ctor === 'Text')) && (_p23._2._1.ctor === '[]')) {
+				return gen(_p23._2._0._0);
+			} else {
+				return _elm_lang$core$Result$Err(
+					unparsable('The node is not a simple text node.'));
+			}
 		}
-	}
-};
-var _ymtszw$elm_xml_decode$Xml_Decode$mapParseError = _elm_lang$core$Result$mapError(
-	function (_p22) {
-		return _ymtszw$elm_xml_decode$Xml_Decode$SimpleError(
-			_ymtszw$elm_xml_decode$Xml_Decode$Unparsable(_p22));
 	});
-var _ymtszw$elm_xml_decode$Xml_Decode$int = function (_p23) {
-	return A2(
-		_elm_lang$core$Result$andThen,
-		function (_p24) {
-			return _ymtszw$elm_xml_decode$Xml_Decode$mapParseError(
-				_elm_lang$core$String$toInt(_p24));
-		},
-		_ymtszw$elm_xml_decode$Xml_Decode$string(_p23));
-};
-var _ymtszw$elm_xml_decode$Xml_Decode$float = function (_p25) {
-	return A2(
-		_elm_lang$core$Result$andThen,
-		function (_p26) {
-			return _ymtszw$elm_xml_decode$Xml_Decode$mapParseError(
-				_elm_lang$core$String$toFloat(_p26));
-		},
-		_ymtszw$elm_xml_decode$Xml_Decode$string(_p25));
-};
-var _ymtszw$elm_xml_decode$Xml_Decode$bool = function (_p27) {
-	return A2(
-		_elm_lang$core$Result$andThen,
-		function (_p28) {
-			return _ymtszw$elm_xml_decode$Xml_Decode$mapParseError(
-				_ymtszw$elm_xml_decode$Xml_Decode$toBool(_p28));
-		},
-		_ymtszw$elm_xml_decode$Xml_Decode$string(_p27));
-};
-var _ymtszw$elm_xml_decode$Xml_Decode$date = function (_p29) {
-	return A2(
-		_elm_lang$core$Result$andThen,
-		function (_p30) {
-			return _ymtszw$elm_xml_decode$Xml_Decode$mapParseError(
-				_elm_lang$core$Date$fromString(_p30));
-		},
-		_ymtszw$elm_xml_decode$Xml_Decode$string(_p29));
-};
+var _ymtszw$elm_xml_decode$Xml_Decode$string = _ymtszw$elm_xml_decode$Xml_Decode$cdata(_elm_lang$core$Result$Ok);
+var _ymtszw$elm_xml_decode$Xml_Decode$int = _ymtszw$elm_xml_decode$Xml_Decode$cdata(_elm_lang$core$String$toInt);
+var _ymtszw$elm_xml_decode$Xml_Decode$float = _ymtszw$elm_xml_decode$Xml_Decode$cdata(_elm_lang$core$String$toFloat);
+var _ymtszw$elm_xml_decode$Xml_Decode$bool = _ymtszw$elm_xml_decode$Xml_Decode$cdata(_ymtszw$elm_xml_decode$Xml_Decode$toBool);
+var _ymtszw$elm_xml_decode$Xml_Decode$date = _ymtszw$elm_xml_decode$Xml_Decode$cdata(_elm_lang$core$Date$fromString);
 var _ymtszw$elm_xml_decode$Xml_Decode$Duplicate = {ctor: 'Duplicate'};
 var _ymtszw$elm_xml_decode$Xml_Decode$AttributeNotFound = function (a) {
 	return {ctor: 'AttributeNotFound', _0: a};
 };
-var _ymtszw$elm_xml_decode$Xml_Decode$stringAttr = F2(
-	function (name_, node) {
-		var error = A3(
+var _ymtszw$elm_xml_decode$Xml_Decode$cdataAttr = F3(
+	function (name_, generator, node) {
+		var gen = function (_p24) {
+			return A2(
+				_elm_lang$core$Result$mapError,
+				function (_p25) {
+					return A3(
+						_ymtszw$elm_xml_decode$Xml_Decode$DetailedError,
+						{ctor: '[]'},
+						node,
+						_ymtszw$elm_xml_decode$Xml_Decode$Unparsable(_p25));
+				},
+				generator(_p24));
+		};
+		var notFound = A3(
 			_ymtszw$elm_xml_decode$Xml_Decode$DetailedError,
 			{ctor: '[]'},
 			node,
 			_ymtszw$elm_xml_decode$Xml_Decode$AttributeNotFound(name_));
-		var _p31 = node;
-		if (_p31.ctor === 'Text') {
-			return _elm_lang$core$Result$Err(error);
+		var _p26 = node;
+		if (_p26.ctor === 'Text') {
+			return _elm_lang$core$Result$Err(notFound);
 		} else {
 			return A2(
-				_elm_lang$core$Result$fromMaybe,
-				error,
-				A2(_ymtszw$elm_xml_decode$Xml_Decode$fetchAttributeValue, name_, _p31._1));
+				_elm_lang$core$Result$andThen,
+				gen,
+				A2(
+					_elm_lang$core$Result$fromMaybe,
+					notFound,
+					A2(_ymtszw$elm_xml_decode$Xml_Decode$fetchAttributeValue, name_, _p26._1)));
 		}
 	});
+var _ymtszw$elm_xml_decode$Xml_Decode$stringAttr = function (name_) {
+	return A2(_ymtszw$elm_xml_decode$Xml_Decode$cdataAttr, name_, _elm_lang$core$Result$Ok);
+};
 var _ymtszw$elm_xml_decode$Xml_Decode$intAttr = function (name_) {
-	return function (_p32) {
-		return A2(
-			_elm_lang$core$Result$andThen,
-			function (_p33) {
-				return _ymtszw$elm_xml_decode$Xml_Decode$mapParseError(
-					_elm_lang$core$String$toInt(_p33));
-			},
-			A2(_ymtszw$elm_xml_decode$Xml_Decode$stringAttr, name_, _p32));
-	};
+	return A2(_ymtszw$elm_xml_decode$Xml_Decode$cdataAttr, name_, _elm_lang$core$String$toInt);
 };
 var _ymtszw$elm_xml_decode$Xml_Decode$floatAttr = function (name_) {
-	return function (_p34) {
-		return A2(
-			_elm_lang$core$Result$andThen,
-			function (_p35) {
-				return _ymtszw$elm_xml_decode$Xml_Decode$mapParseError(
-					_elm_lang$core$String$toFloat(_p35));
-			},
-			A2(_ymtszw$elm_xml_decode$Xml_Decode$stringAttr, name_, _p34));
-	};
+	return A2(_ymtszw$elm_xml_decode$Xml_Decode$cdataAttr, name_, _elm_lang$core$String$toFloat);
 };
 var _ymtszw$elm_xml_decode$Xml_Decode$boolAttr = function (name_) {
-	return function (_p36) {
-		return A2(
-			_elm_lang$core$Result$andThen,
-			function (_p37) {
-				return _ymtszw$elm_xml_decode$Xml_Decode$mapParseError(
-					_ymtszw$elm_xml_decode$Xml_Decode$toBool(_p37));
-			},
-			A2(_ymtszw$elm_xml_decode$Xml_Decode$stringAttr, name_, _p36));
-	};
+	return A2(_ymtszw$elm_xml_decode$Xml_Decode$cdataAttr, name_, _ymtszw$elm_xml_decode$Xml_Decode$toBool);
 };
 var _ymtszw$elm_xml_decode$Xml_Decode$dateAttr = function (name_) {
-	return function (_p38) {
-		return A2(
-			_elm_lang$core$Result$andThen,
-			function (_p39) {
-				return _ymtszw$elm_xml_decode$Xml_Decode$mapParseError(
-					_elm_lang$core$Date$fromString(_p39));
-			},
-			A2(_ymtszw$elm_xml_decode$Xml_Decode$stringAttr, name_, _p38));
-	};
+	return A2(_ymtszw$elm_xml_decode$Xml_Decode$cdataAttr, name_, _elm_lang$core$Date$fromString);
 };
 var _ymtszw$elm_xml_decode$Xml_Decode$NodeNotFound = {ctor: 'NodeNotFound'};
 var _ymtszw$elm_xml_decode$Xml_Decode$single = F2(
 	function (decoder, nodes) {
-		var _p40 = nodes;
-		if (_p40.ctor === '[]') {
+		var _p27 = nodes;
+		if (_p27.ctor === '[]') {
 			return _elm_lang$core$Result$Err(
 				_ymtszw$elm_xml_decode$Xml_Decode$SimpleError(_ymtszw$elm_xml_decode$Xml_Decode$NodeNotFound));
 		} else {
-			if (_p40._1.ctor === '[]') {
-				return decoder(_p40._0);
+			if (_p27._1.ctor === '[]') {
+				return decoder(_p27._0);
 			} else {
 				return _elm_lang$core$Result$Err(
 					_ymtszw$elm_xml_decode$Xml_Decode$SimpleError(_ymtszw$elm_xml_decode$Xml_Decode$Duplicate));
