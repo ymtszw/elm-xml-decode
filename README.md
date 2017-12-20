@@ -134,8 +134,8 @@ Available [here][bench] as a static web page.
 Develop:
 
 ```sh
-npm run bench:init
-npm run bench:compile
+npm run bench -- init
+npm run bench -- compile
 open docs/index.html
 ```
 
