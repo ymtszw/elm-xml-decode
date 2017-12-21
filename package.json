@@ -5,7 +5,7 @@
   "devDependencies": {
     "elm": "^0.18.0",
     "elm-analyse": "^0.12.1",
-    "elm-benckmark": "github:ymtszw/elm-benchmark-helper",
+    "elm-benchmark": "github:ymtszw/elm-benchmark-helper",
     "elm-test": "^0.18.10",
     "elm-verify-examples": "^1.0.2",
     "watch": "^1.0.2"
