@@ -711,6 +711,17 @@ You should specify:
 
     path ["Path", "Target"] (single string)
 
+Basic usages:
+
+    run (path [ "tag", "nested" ] (single string)) "<root><tag><nested>string1</nested></tag></root>"
+    --> Ok "string1"
+
+    run (path [ "tag", "nested" ] (list string)) "<root><tag><nested>string1</nested><nested>string2</nested></tag></root>"
+    --> Ok [ "string1", "string2" ]
+
+    run (path [ "tag", "nested" ] (single (stringAttr "value"))) "<root><tag><nested value='attr1'></nested></tag></root>"
+    --> Ok "attr1"
+
 Decoders will report errors with path at which error happened as well as nearest node:
 
     run (path [ "tag", "nested" ] (single int)) "<root><tag><nested>string1</nested></tag></root>"
