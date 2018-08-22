@@ -1,12 +1,12 @@
 module Benchmarks exposing (main)
 
-import Benchmark exposing (Benchmark, describe, benchmark)
+import Benchmark exposing (Benchmark, benchmark, describe)
 import Benchmark.Runner exposing (BenchmarkProgram, program)
 import ExampleXml
-import XmlParser
 import Xml.Decode as XD
 import Xml.Decode.Extra exposing ((|:))
 import Xml.Decode.Internal as Internal
+import XmlParser
 
 
 suite : Benchmark

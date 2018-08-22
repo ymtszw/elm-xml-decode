@@ -2,12 +2,10 @@
 
 [![GitHub package version][v]](http://package.elm-lang.org/packages/ymtszw/elm-xml-decode/latest)
 [![license][l]](https://github.com/ymtszw/elm-xml-decode/blob/master/LICENSE)
-[![TravisCI][tc]](https://travis-ci.org/ymtszw/elm-xml-decode)
 [![CircleCI][cc]](https://circleci.com/gh/ymtszw/elm-xml-decode/tree/master)
 
 [v]: https://img.shields.io/badge/elm--package-1.0.1-blue.svg?maxAge=3600
 [l]: https://img.shields.io/badge/license-BSD--3--Clause-blue.svg?maxAge=3600
-[tc]: https://travis-ci.org/ymtszw/elm-xml-decode.svg?branch=master
 [cc]: https://circleci.com/gh/ymtszw/elm-xml-decode/tree/master.svg?style=svg
 
 XML decoder, sharing the spirit of [`Json.Decode`][jd].
@@ -113,12 +111,12 @@ exampleDecoder =
 
 ## Development
 
+Globally install Elm Platform. Then:
+
 ```sh
-npm install
-npm test
-npm run watch:test # Monitor file changes and update doc-test
-npm run docs       # Compile and generate docs.json
-npm run analyse    # Analyse Elm code
+$ elm-package install
+$ elm-test
+$ elm-verify-examples
 ```
 
 ## Benchmark: Are they efficient? Are they fast?
@@ -131,12 +129,12 @@ Available [here][bench] as a static web page.
 [bench]: https://ymtszw.github.io/elm-xml-decode/
 [w3s]: https://www.w3schools.com/xml/xml_examples.asp
 
-Develop:
+Build:
 
 ```sh
-npm run bench -- init
-npm run bench -- compile
-open docs/index.html
+$ cd benchmarks
+$ elm-package install
+$ elm-make --output ../docs/index.html Benchmarks.elm
 ```
 
 Sample result (on my MacBookPro early 2015):

@@ -1,4 +1,5 @@
 elm-stuff/
 node_modules/
 tests/Doc/
+tests/VerifyExamples/
 docs.json
