@@ -1,19 +1,20 @@
 {
-    "version": "1.0.1",
+    "type": "package",
+    "name": "ymtszw/elm-xml-decode",
     "summary": "Xml decoder sharing the spirit of Json.Decode",
-    "repository": "https://github.com/ymtszw/elm-xml-decode.git",
     "license": "BSD-3-Clause",
-    "source-directories": [
-        "src"
-    ],
+    "version": "1.0.1",
     "exposed-modules": [
         "Xml.Decode",
         "Xml.Decode.Extra",
         "Xml.Decode.Pipeline"
     ],
+    "elm-version": "0.19.0 <= v < 0.20.0",
     "dependencies": {
-        "elm-lang/core": "5.1.1 <= v < 6.0.0",
+        "elm/core": "1.0.0 <= v < 2.0.0",
+        "elm/regex": "1.0.0 <= v < 2.0.0",
+        "elm/time": "1.0.0 <= v < 2.0.0",
         "jinjor/elm-xml-parser": "1.0.0 <= v < 2.0.0"
     },
-    "elm-version": "0.18.0 <= v < 0.19.0"
+    "test-dependencies": {}
 }

@@ -1,4 +1,4 @@
-module ExampleXml exposing (..)
+module ExampleXml exposing (cdCatalog, justRoot, note)
 
 {-| Provides XML resources for benchmark.
 -}
@@ -24,7 +24,7 @@ note =
     """
 
 
-{-| Taken from <https://www.w3schools.com/xml/cd_catalog.xml>
+{-| Taken from [https://www.w3schools.com/xml/cd\_catalog.xml](https://www.w3schools.com/xml/cd_catalog.xml)
 -}
 cdCatalog : String
 cdCatalog =

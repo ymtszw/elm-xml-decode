@@ -72,4 +72,4 @@ andMap =
 -}
 (|:) : Decoder (a -> b) -> Decoder a -> Decoder b
 (|:) =
-    flip andMap
+    \b a -> andMap a b

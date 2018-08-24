@@ -1,36 +1,13 @@
-module Xml.Decode
-    exposing
-        ( Decoder
-        , ListDecoder
-        , Error(SimpleError, DetailedError)
-        , Problem(NodeNotFound, AttributeNotFound, Duplicate, Unparsable)
-        , run
-        , decodeString
-        , decodeXml
-        , string
-        , int
-        , float
-        , bool
-        , date
-        , stringAttr
-        , intAttr
-        , floatAttr
-        , boolAttr
-        , dateAttr
-        , single
-        , list
-        , leakyList
-        , succeed
-        , fail
-        , andThen
-        , map
-        , map2
-        , withDefault
-        , maybe
-        , lazy
-        , path
-        , errorToString
-        )
+module Xml.Decode exposing
+    ( Decoder, ListDecoder, Error(..), Problem(..)
+    , run, decodeString, decodeXml
+    , string, int, float, bool, date
+    , stringAttr, intAttr, floatAttr, boolAttr, dateAttr
+    , single, list, leakyList
+    , succeed, fail, andThen, map, map2, withDefault, maybe, lazy
+    , path
+    , errorToString
+    )
 
 {-| XML decoder module sharing the spirit of [`Json.Decode`][jd].
 
@@ -110,8 +87,9 @@ Examples in this package are doc-tested.
 -}
 
 import Date exposing (Date)
-import XmlParser exposing (Xml, Node(Text, Element), Attribute)
 import Xml.Decode.Internal as Internal
+import XmlParser exposing (Attribute, Node(..), Xml)
+
 
 
 -- TYPES
@@ -183,8 +161,8 @@ decodeString decoder =
         decodeAndMapError =
             decodeXml decoder >> Result.mapError errorToString
     in
-        -- Could use disassembling Parser.Error into more readable string here; though we skip it for now
-        XmlParser.parse >> Result.mapError toString >> Result.andThen decodeAndMapError
+    -- Could use disassembling Parser.Error into more readable string here; though we skip it for now
+    XmlParser.parse >> Result.mapError toString >> Result.andThen decodeAndMapError
 
 
 {-| Decodes an [`XmlParser.Xml`][xpx] value into other type of Elm value.
@@ -257,15 +235,15 @@ cdata generator node =
         gen =
             generator >> Result.mapError unparsable
     in
-        case node of
-            Text str ->
-                gen str
+    case node of
+        Text str ->
+            gen str
 
-            Element _ _ [ Text str ] ->
-                gen str
+        Element _ _ [ Text str ] ->
+            gen str
 
-            _ ->
-                Err (unparsable "The node is not a simple text node.")
+        _ ->
+            Err (unparsable "The node is not a simple text node.")
 
 
 {-| Similar to [`string`](#string), but also tries to convert `String` to `Int`.
@@ -386,15 +364,15 @@ cdataAttr name_ generator node =
         gen =
             generator >> Result.mapError (DetailedError [] node << Unparsable)
     in
-        case node of
-            Text _ ->
-                Err notFound
+    case node of
+        Text _ ->
+            Err notFound
 
-            Element _ attrs _ ->
-                attrs
-                    |> fetchAttributeValue name_
-                    |> Result.fromMaybe notFound
-                    |> Result.andThen gen
+        Element _ attrs _ ->
+            attrs
+                |> fetchAttributeValue name_
+                |> Result.fromMaybe notFound
+                |> Result.andThen gen
 
 
 fetchAttributeValue : String -> List Attribute -> Maybe String
@@ -406,6 +384,7 @@ fetchAttributeValue name_ attrs =
         { name, value } :: tl ->
             if name == name_ then
                 Just value
+
             else
                 fetchAttributeValue name_ tl
 
@@ -512,7 +491,7 @@ listReducer : Decoder a -> Node -> Result Error (List a) -> Result Error (List a
 listReducer decoder node accResult =
     node
         |> decoder
-        |> Result.map2 (flip (::)) accResult
+        |> Result.map2 (\b a -> (::) a b) accResult
         |> Result.mapError (addPathAndNode [] node)
 
 
@@ -616,7 +595,7 @@ withDefault default decoder =
                 Err _ ->
                     Ok default
     in
-        decoder >> applyDefault
+    decoder >> applyDefault
 
 
 {-| Generates a decoder that results in a `Maybe` value.
@@ -642,7 +621,7 @@ maybe decoder =
                 Err _ ->
                     Ok Nothing
     in
-        decoder >> maybify
+    decoder >> maybify
 
 
 {-| Generates a lazy decoder.
@@ -663,7 +642,7 @@ which happens when you define nested part of the above decoder as `(list someRec
 -}
 lazy : (() -> Decoder a) -> Decoder a
 lazy =
-    flip andThen (succeed ())
+    \a -> andThen a (succeed ())
 
 
 
@@ -709,7 +688,7 @@ For instance, to work with an XML document like:
 
 You should specify:
 
-    path ["Path", "Target"] (single string)
+    path [ "Path", "Target" ] (single string)
 
 Basic usages:
 

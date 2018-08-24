@@ -1,11 +1,11 @@
-module XmlDecodeTest exposing (..)
+module XmlDecodeTest exposing (mustBeAllError, mustBeAllOk, stringWithout, suite, xml)
 
 import Expect exposing (..)
 import Fuzz exposing (..)
 import Test exposing (..)
-import XmlParser exposing (Node(..))
 import Xml.Decode as XD exposing (Decoder)
 import Xml.Decode.Internal as Internal
+import XmlParser exposing (Node(..))
 
 
 suite : Test
@@ -113,7 +113,7 @@ suite =
                             , ( Element "root" [] [ Element "sametag" [] [ Element "sametag" [] [ Text "value" ] ] ], [ "sametag", "sametag" ] )
                             ]
                                 |> List.map (\( node, path ) -> ( xml node, XD.path path <| XD.single XD.string ))
-                                |> List.map (uncurry <| flip XD.decodeXml)
+                                |> List.map ((\f ( a, b ) -> f a b) <| \b a -> XD.decodeXml a b)
                                 |> mustBeAllOk "value"
                     , test "should fail for paths that do not yield nodes" <|
                         \_ ->
@@ -121,8 +121,8 @@ suite =
                             , [ "tag1", "wrongLeaf" ]
                             , [ "wrongTrunk", "tag2" ]
                             ]
-                                |> List.map (flip XD.path <| XD.single XD.string)
-                                |> List.map (flip XD.decodeXml <| xml <| Element "root" [] [ Element "tag1" [] [ Element "tag2" [] [ Text "value" ] ] ])
+                                |> List.map ((\b a -> XD.path a b) <| XD.single XD.string)
+                                |> List.map ((\b a -> XD.decodeXml a b) <| xml <| Element "root" [] [ Element "tag1" [] [ Element "tag2" [] [ Text "value" ] ] ])
                                 |> mustBeAllError
                     , test "should fail for path with multiple matching nodes" <|
                         \_ ->
@@ -203,18 +203,19 @@ xml rootNode =
 
 stringWithout : List String -> Fuzzer String
 stringWithout excluded =
-    flip conditional
-        string
+    conditional
         { retries = 5
         , fallback = always ""
-        , condition = flip List.member excluded >> not
+        , condition = (\a -> List.member a excluded) >> not
         }
+        string
 
 
 mustBeAllOk : b -> List (Result a b) -> Expectation
 mustBeAllOk val results =
     if List.all ((==) (Ok val)) results then
         pass
+
     else
         fail <| toString results
 
@@ -230,7 +231,8 @@ mustBeAllError results =
                 Err _ ->
                     True
     in
-        if List.all isErr results then
-            pass
-        else
-            fail <| toString results
+    if List.all isErr results then
+        pass
+
+    else
+        fail <| toString results

@@ -1,10 +1,10 @@
-module Xml.Decode.Internal exposing (formatNode, escape, escapeR)
+module Xml.Decode.Internal exposing (escape, escapeR, formatNode)
 
 {-| Internal functions.
 -}
 
 import Regex
-import XmlParser exposing (Xml, Node(Text, Element), Attribute)
+import XmlParser exposing (Attribute, Node(..), Xml)
 
 
 {-| Format XML node for error dump. Always produce end tags.
@@ -66,7 +66,7 @@ escape s =
                 c ->
                     String.cons c
     in
-        String.foldr reducer "" s
+    String.foldr reducer "" s
 
 
 {-| Replaces by regex for comparison.

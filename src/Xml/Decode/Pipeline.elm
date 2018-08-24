@@ -1,4 +1,4 @@
-module Xml.Decode.Pipeline exposing (requiredPath, possiblePath, optionalPath)
+module Xml.Decode.Pipeline exposing (requiredPath, optionalPath, possiblePath)
 
 {-| Xml decoder module sharing the spirit of [`Json.Decode.Pipeline`][jdp].
 
