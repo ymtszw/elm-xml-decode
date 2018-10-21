@@ -11,6 +11,7 @@ stringSuite : Test
 stringSuite =
     describe "string"
         [ fuzzOk escapedStringFuzzer string "bare string" identity
+        , testOk string "" ""
         , testErr string "<innerTag>nestedText</innerTag>"
         , testErr string "notSimpleText<innerTag></innerTag></tag>"
         , testErr string "<innerTag></innerTag>notSimpleText</tag>"
@@ -22,9 +23,9 @@ escapedStringFuzzer =
     Fuzz.map escape Fuzz.string
 
 
-testOk : Decoder a -> String -> Test
-testOk decoder input =
-    test ("should decode " ++ xml input) <| \_ -> run decoder (xml input) |> Expect.ok
+testOk : Decoder a -> String -> a -> Test
+testOk decoder input expect =
+    test ("should decode " ++ xml input) <| \_ -> run decoder (xml input) |> Expect.equal (Ok expect)
 
 
 testErr : Decoder a -> String -> Test
@@ -68,10 +69,10 @@ floatSuite =
 boolSuite : Test
 boolSuite =
     describe "bool"
-        [ testOk bool "true"
-        , testOk bool "1"
-        , testOk bool "false"
-        , testOk bool "0"
+        [ testOk bool "true" True
+        , testOk bool "1" True
+        , testOk bool "false" False
+        , testOk bool "0" False
         , fuzzErr nonBoolFuzzer bool "non-bool bare string" identity
         ]
 
@@ -132,6 +133,7 @@ listSuite : Test
 listSuite =
     describe "list"
         [ testListPathOk [ "tag" ] "<tag>value1</tag><tag>value2</tag>" [ "value1", "value2" ]
+        , testListPathOk [ "tag" ] "<tag>nonEmpty</tag><tag></tag>" [ "nonEmpty", "" ]
         , testListPathOk [ "tag" ] "<tag>value1</tag>" [ "value1" ]
         , testListPathOk [ "tag" ] "" []
         , test "should fail to decode into list when value is not decodable" <|

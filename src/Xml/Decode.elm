@@ -279,6 +279,7 @@ decodeXml decoder { root } =
 {-| Decodes an [`XmlParser.Node`][xpn] into `String`.
 
   - If the node is `XmlParser.Text`, extracts its value.
+  - If the node is `XmlParser.Element` AND contains nothing, treat it as "empty text".
   - If the node is `XmlParser.Element` AND contains a single `XmlParser.Text` child,
     extracts its value.
   - Otherwise fails.
@@ -289,6 +290,9 @@ If you want to extract values from node attribute, use [`stringAttr`](#stringAtt
 
     run string "<root>string</root>"
     --> Ok "string"
+
+    run string "<root></root>"
+    --> Ok ""
 
     run string "<root><nested>string</nested></root>"
     --> Err "The node is not a simple text node. At: /, Node: <root><nested>string</nested></root>"
@@ -311,6 +315,10 @@ cdata generator node =
     case node of
         Text str ->
             gen str
+
+        Element _ _ [] ->
+            -- Accepts empty tag as "empty string"
+            gen ""
 
         Element _ _ [ Text str ] ->
             gen str
