@@ -26,7 +26,7 @@ Examples in this package are doc-tested.
 
     exampleDecoder : Decoder ( String, List Int )
     exampleDecoder =
-        map2 (,)
+        map2 Tuple.pair
             (path [ "string", "value" ] (single string))
             (path [ "int", "values" ] (list int))
 
@@ -175,7 +175,7 @@ only cares about root XML node.
 
     exampleDecoder : Decoder ( String, List Int )
     exampleDecoder =
-        map2 (,)
+        map2 Tuple.pair
             (path [ "string", "value" ] (single string))
             (path [ "int", "values" ] (list int))
 
@@ -256,7 +256,17 @@ cdata generator node =
 -}
 int : Decoder Int
 int =
-    cdata String.toInt
+    cdata (convertCdata String.toInt "an Int")
+
+
+convertCdata : (String -> Maybe a) -> String -> String -> Result String a
+convertCdata toType typeStr raw =
+    case toType raw of
+        Just a ->
+            Ok a
+
+        Nothing ->
+            Err ("could not convert string '" ++ raw ++ "' to " ++ typeStr)
 
 
 {-| Decodes to `Float`.
@@ -270,7 +280,7 @@ int =
 -}
 float : Decoder Float
 float =
-    cdata String.toFloat
+    cdata (convertCdata String.toFloat "a Float")
 
 
 {-| Decodes to `Bool`.
@@ -384,7 +394,7 @@ fetchAttributeValue name_ attrs =
 -}
 intAttr : String -> Decoder Int
 intAttr name_ =
-    cdataAttr name_ String.toInt
+    cdataAttr name_ (convertCdata String.toInt "an Int")
 
 
 {-| Decodes an attribute value into `Float`.
@@ -398,7 +408,7 @@ intAttr name_ =
 -}
 floatAttr : String -> Decoder Float
 floatAttr name_ =
-    cdataAttr name_ String.toFloat
+    cdataAttr name_ (convertCdata String.toFloat "a Float")
 
 
 {-| Decodes an attribute value into `Bool`.
@@ -541,7 +551,7 @@ Although mainly, this is used as a building block of DSL style decoder generatio
 
 Also see `Xml.Decode.Pipeline` or `Xml.Decode.Extra`.
 
-    run (map2 (,) string string) "<root>string</root>"
+    run (map2 Tuple.pair string string) "<root>string</root>"
     --> Ok ( "string", "string" )
 
 -}
@@ -761,7 +771,7 @@ errorToString error =
         DetailedError path_ node r ->
             problemToString r
                 ++ (" At: /" ++ String.join "/" path_)
-                ++ (", Node: " ++ Internal.formatNode node)
+                ++ (", Node: " ++ formatNode node)
 
 
 problemToString : Problem -> String
