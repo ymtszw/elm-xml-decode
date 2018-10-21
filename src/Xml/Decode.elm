@@ -107,8 +107,8 @@ import XmlParser exposing (Attribute, Node(..), Xml)
 
 {-| A function that knows how to decode an XML node into Elm value.
 -}
-type alias Decoder a =
-    Node -> Result Error a
+type Decoder a
+    = Decoder (Node -> Result Error a)
 
 
 {-| A function that knows how to decode list of XML nodes into Elm value.
@@ -116,8 +116,8 @@ type alias Decoder a =
 Used in conjunction with "query" functions such as [`path`](#path).
 
 -}
-type alias ListDecoder a =
-    List Node -> Result Error a
+type ListDecoder a
+    = ListDecoder (List Node -> Result Error a)
 
 
 {-| Represents error on decode execution.
@@ -268,7 +268,7 @@ only cares about root XML node.
 
 -}
 decodeXml : Decoder a -> Xml -> Result Error a
-decodeXml decoder { root } =
+decodeXml (Decoder decoder) { root } =
     decoder root
 
 
@@ -304,7 +304,12 @@ string =
 
 
 cdata : (String -> Result String a) -> Decoder a
-cdata generator node =
+cdata generator =
+    Decoder (cdataImpl generator)
+
+
+cdataImpl : (String -> Result String a) -> Node -> Result Error a
+cdataImpl generator node =
     let
         unparsable =
             DetailedError [] node << Unparsable
@@ -432,7 +437,12 @@ stringAttr name_ =
 
 
 cdataAttr : String -> (String -> Result String a) -> Decoder a
-cdataAttr name_ generator node =
+cdataAttr name_ generator =
+    Decoder (cdataAttrImpl name_ generator)
+
+
+cdataAttrImpl : String -> (String -> Result String a) -> Node -> Result Error a
+cdataAttrImpl name_ generator node =
     let
         notFound =
             DetailedError [] node (AttributeNotFound name_)
@@ -531,7 +541,12 @@ Examples:
 
 -}
 single : Decoder a -> ListDecoder a
-single decoder nodes =
+single decoder =
+    ListDecoder (singleImpl decoder)
+
+
+singleImpl : Decoder a -> List Node -> Result Error a
+singleImpl (Decoder decoder) nodes =
     case nodes of
         [] ->
             Err <| SimpleError NodeNotFound
@@ -556,11 +571,11 @@ This [`ListDecoder`](#ListDecoder) fails if any incoming items cannot be decoded
 -}
 list : Decoder a -> ListDecoder (List a)
 list decoder =
-    listImpl decoder []
+    ListDecoder (listImpl decoder [])
 
 
 listImpl : Decoder a -> List a -> List Node -> Result Error (List a)
-listImpl decoder acc nodes =
+listImpl (Decoder decoder) acc nodes =
     case nodes of
         [] ->
             Ok (List.reverse acc)
@@ -568,7 +583,7 @@ listImpl decoder acc nodes =
         n :: ns ->
             case decoder n of
                 Ok item ->
-                    listImpl decoder (item :: acc) ns
+                    listImpl (Decoder decoder) (item :: acc) ns
 
                 Err e ->
                     Err e
@@ -581,8 +596,8 @@ listImpl decoder acc nodes =
 
 -}
 leakyList : Decoder a -> ListDecoder (List a)
-leakyList decoder =
-    List.foldr (decoder >> accumlateOk) (Ok [])
+leakyList (Decoder decoder) =
+    ListDecoder (List.foldr (decoder >> accumlateOk) (Ok []))
 
 
 accumlateOk : Result x a -> Result x (List a) -> Result x (List a)
@@ -603,23 +618,32 @@ accumlateOk result acc =
 -}
 succeed : a -> Decoder a
 succeed a =
-    always (Ok a)
+    Decoder (always <| Ok a)
 
 
 {-| Decoder that always fail with the given message.
 -}
-fail : Error -> Decoder a
-fail error =
-    always (Err error)
+fail : String -> Decoder a
+fail message =
+    Decoder (always <| Err <| SimpleError <| Unparsable message)
 
 
 {-| Generates a decoder that depends on previous value.
 -}
 andThen : (a -> Decoder b) -> Decoder a -> Decoder b
-andThen decoderBGen decoderA node =
+andThen decoderBGen decoderA =
+    Decoder (andThenImpl decoderBGen decoderA)
+
+
+andThenImpl : (a -> Decoder b) -> Decoder a -> Node -> Result Error b
+andThenImpl decoderBGen (Decoder decoderA) node =
     case decoderA node of
         Ok valA ->
-            node |> decoderBGen valA
+            let
+                (Decoder decoderB) =
+                    decoderBGen valA
+            in
+            decoderB node
 
         Err e ->
             Err e
@@ -633,7 +657,12 @@ andThen decoderBGen decoderA node =
 -}
 map : (a -> value) -> Decoder a -> Decoder value
 map valueGen decoder =
-    decoder >> Result.map valueGen
+    Decoder (mapImpl valueGen decoder)
+
+
+mapImpl : (a -> value) -> Decoder a -> Node -> Result Error value
+mapImpl valueGen (Decoder decoder) node =
+    node |> decoder |> Result.map valueGen
 
 
 {-| Generates a decoder that combines results from two decoders.
@@ -648,7 +677,12 @@ Also see `Xml.Decode.Pipeline` or `Xml.Decode.Extra`.
 
 -}
 map2 : (a -> b -> value) -> Decoder a -> Decoder b -> Decoder value
-map2 valueGen decoderA decoderB node =
+map2 valueGen decoderA decoderB =
+    Decoder (map2Impl valueGen decoderA decoderB)
+
+
+map2Impl : (a -> b -> value) -> Decoder a -> Decoder b -> Node -> Result Error value
+map2Impl valueGen (Decoder decoderA) (Decoder decoderB) node =
     Result.map2 valueGen
         (decoderA node)
         (decoderB node)
@@ -682,7 +716,7 @@ andMap =
 
 -}
 withDefault : a -> Decoder a -> Decoder a
-withDefault default decoder =
+withDefault default (Decoder decoder) =
     let
         applyDefault result =
             case result of
@@ -692,7 +726,7 @@ withDefault default decoder =
                 Err _ ->
                     Ok default
     in
-    decoder >> applyDefault
+    Decoder (decoder >> applyDefault)
 
 
 {-| Generates a decoder that results in a `Maybe` value.
@@ -708,7 +742,7 @@ Otherwise (in cases of `Ok`,) it succeeds with `Just` value.
 
 -}
 maybe : Decoder a -> Decoder (Maybe a)
-maybe decoder =
+maybe (Decoder decoder) =
     let
         maybify result =
             case result of
@@ -718,7 +752,7 @@ maybe decoder =
                 Err _ ->
                     Ok Nothing
     in
-    decoder >> maybify
+    Decoder (decoder >> maybify)
 
 
 {-| Generates a lazy decoder.
@@ -805,7 +839,12 @@ Decoders will report errors with path at which error happened as well as nearest
 
 -}
 path : List String -> ListDecoder a -> Decoder a
-path path_ listDecoder node =
+path path_ listDecoder =
+    Decoder (pathImpl path_ listDecoder)
+
+
+pathImpl : List String -> ListDecoder a -> Node -> Result Error a
+pathImpl path_ listDecoder node =
     node |> children |> query path_ |> decodeWithErrorContext path_ node listDecoder
 
 
@@ -848,7 +887,7 @@ hasName name node =
 
 
 decodeWithErrorContext : List String -> Node -> ListDecoder a -> List Node -> Result Error a
-decodeWithErrorContext path_ node listDecoder nodes =
+decodeWithErrorContext path_ node (ListDecoder listDecoder) nodes =
     case listDecoder nodes of
         Ok ok ->
             Ok ok
