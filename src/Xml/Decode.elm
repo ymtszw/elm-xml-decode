@@ -4,7 +4,7 @@ module Xml.Decode exposing
     , string, int, float, bool
     , stringAttr, intAttr, floatAttr, boolAttr
     , single, list, leakyList
-    , succeed, fail, andThen, map, map2, andMap, withDefault, maybe, lazy
+    , succeed, fail, andThen, map, map2, map3, map4, map5, andMap, withDefault, maybe, lazy
     , path
     , requiredPath, optionalPath, possiblePath
     , errorToString
@@ -73,7 +73,9 @@ Examples in this package are doc-tested.
 
 # Decoder Utilities
 
-@docs succeed, fail, andThen, map, map2, andMap, withDefault, maybe, lazy
+`mapN` series are backed by `Result.mapN` series, thus it only supports up to `map5`.
+
+@docs succeed, fail, andThen, map, map2, map3, map4, map5, andMap, withDefault, maybe, lazy
 
 
 # Node Locater
@@ -668,9 +670,7 @@ mapImpl valueGen (Decoder decoder) node =
 {-| Generates a decoder that combines results from two decoders.
 
 It can be used for generating a decoder for a data type that takes two inputs.
-Although mainly, this is used as a building block of DSL style decoder generation.
-
-Also see `Xml.Decode.Pipeline` or `Xml.Decode.Extra`.
+Also this is used as a building block of decoder composition helpers.
 
     run (map2 Tuple.pair string string) "<root>string</root>"
     --> Ok ( "string", "string" )
@@ -683,9 +683,52 @@ map2 valueGen decoderA decoderB =
 
 map2Impl : (a -> b -> value) -> Decoder a -> Decoder b -> Node -> Result Error value
 map2Impl valueGen (Decoder decoderA) (Decoder decoderB) node =
-    Result.map2 valueGen
-        (decoderA node)
-        (decoderB node)
+    Result.map2 valueGen (decoderA node) (decoderB node)
+
+
+map3 : (a -> b -> c -> value) -> Decoder a -> Decoder b -> Decoder c -> Decoder value
+map3 toVal dA dB dC =
+    Decoder (map3Impl toVal dA dB dC)
+
+
+map3Impl : (a -> b -> c -> value) -> Decoder a -> Decoder b -> Decoder c -> Node -> Result Error value
+map3Impl toVal (Decoder dA) (Decoder dB) (Decoder dC) node =
+    Result.map3 toVal (dA node) (dB node) (dC node)
+
+
+map4 : (a -> b -> c -> d -> value) -> Decoder a -> Decoder b -> Decoder c -> Decoder d -> Decoder value
+map4 toVal dA dB dC dD =
+    Decoder (map4Impl toVal dA dB dC dD)
+
+
+map4Impl : (a -> b -> c -> d -> value) -> Decoder a -> Decoder b -> Decoder c -> Decoder d -> Node -> Result Error value
+map4Impl toVal (Decoder dA) (Decoder dB) (Decoder dC) (Decoder dD) node =
+    Result.map4 toVal (dA node) (dB node) (dC node) (dD node)
+
+
+map5 :
+    (a -> b -> c -> d -> e -> value)
+    -> Decoder a
+    -> Decoder b
+    -> Decoder c
+    -> Decoder d
+    -> Decoder e
+    -> Decoder value
+map5 toVal dA dB dC dD dE =
+    Decoder (map5Impl toVal dA dB dC dD dE)
+
+
+map5Impl :
+    (a -> b -> c -> d -> e -> value)
+    -> Decoder a
+    -> Decoder b
+    -> Decoder c
+    -> Decoder d
+    -> Decoder e
+    -> Node
+    -> Result Error value
+map5Impl toVal (Decoder dA) (Decoder dB) (Decoder dC) (Decoder dD) (Decoder dE) node =
+    Result.map5 toVal (dA node) (dB node) (dC node) (dD node) (dE node)
 
 
 {-| Equivalent to [`Json.Decode.Extra.andMap`][jdeam], allows writing XML decoders in sequential style.
