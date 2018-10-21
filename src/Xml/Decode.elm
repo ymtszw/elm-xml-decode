@@ -1,36 +1,14 @@
-module Xml.Decode
-    exposing
-        ( Decoder
-        , ListDecoder
-        , Error(SimpleError, DetailedError)
-        , Problem(NodeNotFound, AttributeNotFound, Duplicate, Unparsable)
-        , run
-        , decodeString
-        , decodeXml
-        , string
-        , int
-        , float
-        , bool
-        , date
-        , stringAttr
-        , intAttr
-        , floatAttr
-        , boolAttr
-        , dateAttr
-        , single
-        , list
-        , leakyList
-        , succeed
-        , fail
-        , andThen
-        , map
-        , map2
-        , withDefault
-        , maybe
-        , lazy
-        , path
-        , errorToString
-        )
+module Xml.Decode exposing
+    ( Decoder, ListDecoder, Error(..), Problem(..)
+    , run, decodeString, decodeXml
+    , string, int, float, bool
+    , stringAttr, intAttr, floatAttr, boolAttr
+    , single, list, leakyList
+    , succeed, fail, andThen, map, map2, map3, map4, map5, andMap, withDefault, maybe, lazy
+    , path
+    , requiredPath, optionalPath, possiblePath
+    , errorToString
+    )
 
 {-| XML decoder module sharing the spirit of [`Json.Decode`][jd].
 
@@ -42,14 +20,11 @@ Using [`XmlParser`][xp] as its parser component.
 
 # Basic Example
 
-Also see examples in [`Xml.Decode.Pipeline`](./Xml-Decode-Pipeline)
-and [`Xml.Decode.Extra`](./Xml-Decode-Extra) for alternative styles.
-
 Examples in this package are doc-tested.
 
     exampleDecoder : Decoder ( String, List Int )
     exampleDecoder =
-        map2 (,)
+        map2 Tuple.pair
             (path [ "string", "value" ] (single string))
             (path [ "int", "values" ] (list int))
 
@@ -80,12 +55,12 @@ Examples in this package are doc-tested.
 
 # Decoders
 
-@docs string, int, float, bool, date
+@docs string, int, float, bool
 
 
 # Attribute Decoders
 
-@docs stringAttr, intAttr, floatAttr, boolAttr, dateAttr
+@docs stringAttr, intAttr, floatAttr, boolAttr
 
 
 # List Decoders
@@ -95,12 +70,23 @@ Examples in this package are doc-tested.
 
 # Decoder Utilities
 
-@docs succeed, fail, andThen, map, map2, withDefault, maybe, lazy
+`mapN` series are backed by `Result.mapN` series, thus it only supports up to `map5`.
+
+@docs succeed, fail, andThen, map, map2, map3, map4, map5, andMap, withDefault, maybe, lazy
 
 
 # Node Locater
 
 @docs path
+
+
+# Pipeline APIs
+
+Allow writing Decoders in Pipeline-style, just like [`Json.Decode.Pipeline`][jdp].
+
+[jdp]: http://package.elm-lang.org/packages/NoRedInk/elm-decode-pipeline/latest/Json-Decode-Pipeline
+
+@docs requiredPath, optionalPath, possiblePath
 
 
 # Error Utility
@@ -109,9 +95,10 @@ Examples in this package are doc-tested.
 
 -}
 
-import Date exposing (Date)
-import XmlParser exposing (Xml, Node(Text, Element), Attribute)
-import Xml.Decode.Internal as Internal
+import Parser
+import Xml.Decode.Internal exposing (..)
+import XmlParser exposing (Attribute, Node(..), Xml)
+
 
 
 -- TYPES
@@ -119,8 +106,8 @@ import Xml.Decode.Internal as Internal
 
 {-| A function that knows how to decode an XML node into Elm value.
 -}
-type alias Decoder a =
-    Node -> Result Error a
+type Decoder a
+    = Decoder (Node -> Result Error a)
 
 
 {-| A function that knows how to decode list of XML nodes into Elm value.
@@ -128,8 +115,8 @@ type alias Decoder a =
 Used in conjunction with "query" functions such as [`path`](#path).
 
 -}
-type alias ListDecoder a =
-    List Node -> Result Error a
+type ListDecoder a
+    = ListDecoder (List Node -> Result Error a)
 
 
 {-| Represents error on decode execution.
@@ -178,13 +165,76 @@ explicitly use [`XmlParser.parse`][xpp] and [`decodeXml`](#decodeXml).
 
 -}
 decodeString : Decoder a -> String -> Result String a
-decodeString decoder =
-    let
-        decodeAndMapError =
-            decodeXml decoder >> Result.mapError errorToString
-    in
-        -- Could use disassembling Parser.Error into more readable string here; though we skip it for now
-        XmlParser.parse >> Result.mapError toString >> Result.andThen decodeAndMapError
+decodeString decoder s =
+    case XmlParser.parse s of
+        Ok xml ->
+            case decodeXml decoder xml of
+                Ok decoded ->
+                    Ok decoded
+
+                Err dErr ->
+                    Err (errorToString dErr)
+
+        Err pErr ->
+            Err (parseErrorsToString pErr)
+
+
+parseErrorsToString : List { advanced | row : Int, col : Int, problem : Parser.Problem } -> String
+parseErrorsToString deadEnds =
+    deadEnds
+        |> List.map
+            (\deadEnd ->
+                ("At [" ++ String.fromInt deadEnd.row ++ "," ++ String.fromInt deadEnd.col ++ "], ")
+                    ++ parserProblemToString deadEnd.problem
+            )
+        |> String.join "\n"
+        |> String.append "Invalid XML document.\n"
+
+
+parserProblemToString : Parser.Problem -> String
+parserProblemToString problem =
+    case problem of
+        Parser.Expecting expect ->
+            "I was expecting: " ++ expect
+
+        Parser.ExpectingInt ->
+            "I was expecting an integer"
+
+        Parser.ExpectingHex ->
+            "I was expecting a hexadecimal"
+
+        Parser.ExpectingOctal ->
+            "I was expecting an octal"
+
+        Parser.ExpectingBinary ->
+            "I was expecting a binary"
+
+        Parser.ExpectingFloat ->
+            "I was expecting a float"
+
+        Parser.ExpectingNumber ->
+            "I was expecting a number"
+
+        Parser.ExpectingVariable ->
+            "I was expecting a variable"
+
+        Parser.ExpectingSymbol symbol ->
+            "I was expecting a symbol: " ++ symbol
+
+        Parser.ExpectingKeyword keyword ->
+            "I was expecting a keyword: " ++ keyword
+
+        Parser.ExpectingEnd ->
+            "I was expecting the end of input"
+
+        Parser.UnexpectedChar ->
+            "I got an unexpected character"
+
+        Parser.Problem text ->
+            text
+
+        Parser.BadRepeat ->
+            "I got a bad repetition"
 
 
 {-| Decodes an [`XmlParser.Xml`][xpx] value into other type of Elm value.
@@ -198,7 +248,7 @@ only cares about root XML node.
 
     exampleDecoder : Decoder ( String, List Int )
     exampleDecoder =
-        map2 (,)
+        map2 Tuple.pair
             (path [ "string", "value" ] (single string))
             (path [ "int", "values" ] (list int))
 
@@ -217,7 +267,7 @@ only cares about root XML node.
 
 -}
 decodeXml : Decoder a -> Xml -> Result Error a
-decodeXml decoder { root } =
+decodeXml (Decoder decoder) { root } =
     decoder root
 
 
@@ -228,6 +278,7 @@ decodeXml decoder { root } =
 {-| Decodes an [`XmlParser.Node`][xpn] into `String`.
 
   - If the node is `XmlParser.Text`, extracts its value.
+  - If the node is `XmlParser.Element` AND contains nothing, treat it as "empty text".
   - If the node is `XmlParser.Element` AND contains a single `XmlParser.Text` child,
     extracts its value.
   - Otherwise fails.
@@ -239,6 +290,9 @@ If you want to extract values from node attribute, use [`stringAttr`](#stringAtt
     run string "<root>string</root>"
     --> Ok "string"
 
+    run string "<root></root>"
+    --> Ok ""
+
     run string "<root><nested>string</nested></root>"
     --> Err "The node is not a simple text node. At: /, Node: <root><nested>string</nested></root>"
 
@@ -249,7 +303,12 @@ string =
 
 
 cdata : (String -> Result String a) -> Decoder a
-cdata generator node =
+cdata generator =
+    Decoder (cdataImpl generator)
+
+
+cdataImpl : (String -> Result String a) -> Node -> Result Error a
+cdataImpl generator node =
     let
         unparsable =
             DetailedError [] node << Unparsable
@@ -257,15 +316,19 @@ cdata generator node =
         gen =
             generator >> Result.mapError unparsable
     in
-        case node of
-            Text str ->
-                gen str
+    case node of
+        Text str ->
+            gen str
 
-            Element _ _ [ Text str ] ->
-                gen str
+        Element _ _ [] ->
+            -- Accepts empty tag as "empty string"
+            gen ""
 
-            _ ->
-                Err (unparsable "The node is not a simple text node.")
+        Element _ _ [ Text str ] ->
+            gen str
+
+        _ ->
+            Err (unparsable "The node is not a simple text node.")
 
 
 {-| Similar to [`string`](#string), but also tries to convert `String` to `Int`.
@@ -279,7 +342,17 @@ cdata generator node =
 -}
 int : Decoder Int
 int =
-    cdata String.toInt
+    cdata (convertCdata String.toInt "an Int")
+
+
+convertCdata : (String -> Maybe a) -> String -> String -> Result String a
+convertCdata toType typeStr raw =
+    case toType raw of
+        Just a ->
+            Ok a
+
+        Nothing ->
+            Err ("could not convert string '" ++ raw ++ "' to " ++ typeStr)
 
 
 {-| Decodes to `Float`.
@@ -293,7 +366,7 @@ int =
 -}
 float : Decoder Float
 float =
-    cdata String.toFloat
+    cdata (convertCdata String.toFloat "a Float")
 
 
 {-| Decodes to `Bool`.
@@ -340,21 +413,6 @@ toBool str =
             Err "Not a valid boolean value."
 
 
-{-| Decodes to `Date`.
-
-[It uses `new Date()` of JavaScript under the hood][date].
-
-[Likely this needs to be updated for later versoins of core][depr].
-
-[date]: https://github.com/elm-lang/core/blob/5.1.1/src/Native/Date.js#L5
-[depr]: https://github.com/elm-lang/core/commit/a892fdf705f83523752c5469384e9880fbdfe3b1#diff-25d902c24283ab8cfbac54dfa101ad31
-
--}
-date : Decoder Date
-date =
-    cdata Date.fromString
-
-
 
 -- ATTRIBUTE DECODERS
 
@@ -378,7 +436,12 @@ stringAttr name_ =
 
 
 cdataAttr : String -> (String -> Result String a) -> Decoder a
-cdataAttr name_ generator node =
+cdataAttr name_ generator =
+    Decoder (cdataAttrImpl name_ generator)
+
+
+cdataAttrImpl : String -> (String -> Result String a) -> Node -> Result Error a
+cdataAttrImpl name_ generator node =
     let
         notFound =
             DetailedError [] node (AttributeNotFound name_)
@@ -386,15 +449,15 @@ cdataAttr name_ generator node =
         gen =
             generator >> Result.mapError (DetailedError [] node << Unparsable)
     in
-        case node of
-            Text _ ->
-                Err notFound
+    case node of
+        Text _ ->
+            Err notFound
 
-            Element _ attrs _ ->
-                attrs
-                    |> fetchAttributeValue name_
-                    |> Result.fromMaybe notFound
-                    |> Result.andThen gen
+        Element _ attrs _ ->
+            attrs
+                |> fetchAttributeValue name_
+                |> Result.fromMaybe notFound
+                |> Result.andThen gen
 
 
 fetchAttributeValue : String -> List Attribute -> Maybe String
@@ -406,6 +469,7 @@ fetchAttributeValue name_ attrs =
         { name, value } :: tl ->
             if name == name_ then
                 Just value
+
             else
                 fetchAttributeValue name_ tl
 
@@ -421,7 +485,7 @@ fetchAttributeValue name_ attrs =
 -}
 intAttr : String -> Decoder Int
 intAttr name_ =
-    cdataAttr name_ String.toInt
+    cdataAttr name_ (convertCdata String.toInt "an Int")
 
 
 {-| Decodes an attribute value into `Float`.
@@ -435,7 +499,7 @@ intAttr name_ =
 -}
 floatAttr : String -> Decoder Float
 floatAttr name_ =
-    cdataAttr name_ String.toFloat
+    cdataAttr name_ (convertCdata String.toFloat "a Float")
 
 
 {-| Decodes an attribute value into `Bool`.
@@ -450,13 +514,6 @@ floatAttr name_ =
 boolAttr : String -> Decoder Bool
 boolAttr name_ =
     cdataAttr name_ toBool
-
-
-{-| Decodes an attribute value into `Date`.
--}
-dateAttr : String -> Decoder Date
-dateAttr name_ =
-    cdataAttr name_ Date.fromString
 
 
 
@@ -483,7 +540,12 @@ Examples:
 
 -}
 single : Decoder a -> ListDecoder a
-single decoder nodes =
+single decoder =
+    ListDecoder (singleImpl decoder)
+
+
+singleImpl : Decoder a -> List Node -> Result Error a
+singleImpl (Decoder decoder) nodes =
     case nodes of
         [] ->
             Err <| SimpleError NodeNotFound
@@ -502,29 +564,39 @@ This [`ListDecoder`](#ListDecoder) fails if any incoming items cannot be decoded
     run (path [ "tag" ] (list string)) "<root><tag>string1</tag><tag>string2</tag></root>"
     --> Ok [ "string1", "string2" ]
 
+    run (path [ "tag" ] (list int)) "<root><tag>1</tag><tag>nonInt</tag></root>"
+    --> Err "could not convert string 'nonInt' to an Int At: /tag, Node: <tag>nonInt</tag>"
+
 -}
 list : Decoder a -> ListDecoder (List a)
 list decoder =
-    List.foldr (listReducer decoder) (Ok [])
+    ListDecoder (listImpl decoder [])
 
 
-listReducer : Decoder a -> Node -> Result Error (List a) -> Result Error (List a)
-listReducer decoder node accResult =
-    node
-        |> decoder
-        |> Result.map2 (flip (::)) accResult
-        |> Result.mapError (addPathAndNode [] node)
+listImpl : Decoder a -> List a -> List Node -> Result Error (List a)
+listImpl (Decoder decoder) acc nodes =
+    case nodes of
+        [] ->
+            Ok (List.reverse acc)
+
+        n :: ns ->
+            case decoder n of
+                Ok item ->
+                    listImpl (Decoder decoder) (item :: acc) ns
+
+                Err e ->
+                    Err e
 
 
 {-| Variation of [`list`](#list), which ignores items that cannot be decoded.
 
-    run (path [ "tag" ] (leakyList string)) "<root><tag>string1</tag><tag><nested>string2</nested></tag></root>"
-    --> Ok [ "string1" ]
+    run (path [ "tag" ] (leakyList int)) "<root><tag>1</tag><tag>nonINt</tag></root>"
+    --> Ok [ 1 ]
 
 -}
 leakyList : Decoder a -> ListDecoder (List a)
-leakyList decoder =
-    List.foldr (decoder >> accumlateOk) (Ok [])
+leakyList (Decoder decoder) =
+    ListDecoder (List.foldr (decoder >> accumlateOk) (Ok []))
 
 
 accumlateOk : Result x a -> Result x (List a) -> Result x (List a)
@@ -545,23 +617,32 @@ accumlateOk result acc =
 -}
 succeed : a -> Decoder a
 succeed a =
-    always (Ok a)
+    Decoder (always <| Ok a)
 
 
 {-| Decoder that always fail with the given message.
 -}
-fail : Error -> Decoder a
-fail error =
-    always (Err error)
+fail : String -> Decoder a
+fail message =
+    Decoder (always <| Err <| SimpleError <| Unparsable message)
 
 
 {-| Generates a decoder that depends on previous value.
 -}
 andThen : (a -> Decoder b) -> Decoder a -> Decoder b
-andThen decoderBGen decoderA node =
+andThen decoderBGen decoderA =
+    Decoder (andThenImpl decoderBGen decoderA)
+
+
+andThenImpl : (a -> Decoder b) -> Decoder a -> Node -> Result Error b
+andThenImpl decoderBGen (Decoder decoderA) node =
     case decoderA node of
         Ok valA ->
-            node |> decoderBGen valA
+            let
+                (Decoder decoderB) =
+                    decoderBGen valA
+            in
+            decoderB node
 
         Err e ->
             Err e
@@ -575,25 +656,94 @@ andThen decoderBGen decoderA node =
 -}
 map : (a -> value) -> Decoder a -> Decoder value
 map valueGen decoder =
-    decoder >> Result.map valueGen
+    Decoder (mapImpl valueGen decoder)
+
+
+mapImpl : (a -> value) -> Decoder a -> Node -> Result Error value
+mapImpl valueGen (Decoder decoder) node =
+    node |> decoder |> Result.map valueGen
 
 
 {-| Generates a decoder that combines results from two decoders.
 
 It can be used for generating a decoder for a data type that takes two inputs.
-Although mainly, this is used as a building block of DSL style decoder generation.
+Also this is used as a building block of decoder composition helpers.
 
-Also see `Xml.Decode.Pipeline` or `Xml.Decode.Extra`.
-
-    run (map2 (,) string string) "<root>string</root>"
+    run (map2 Tuple.pair string string) "<root>string</root>"
     --> Ok ( "string", "string" )
 
 -}
 map2 : (a -> b -> value) -> Decoder a -> Decoder b -> Decoder value
-map2 valueGen decoderA decoderB node =
-    Result.map2 valueGen
-        (decoderA node)
-        (decoderB node)
+map2 valueGen decoderA decoderB =
+    Decoder (map2Impl valueGen decoderA decoderB)
+
+
+map2Impl : (a -> b -> value) -> Decoder a -> Decoder b -> Node -> Result Error value
+map2Impl valueGen (Decoder decoderA) (Decoder decoderB) node =
+    Result.map2 valueGen (decoderA node) (decoderB node)
+
+
+map3 : (a -> b -> c -> value) -> Decoder a -> Decoder b -> Decoder c -> Decoder value
+map3 toVal dA dB dC =
+    Decoder (map3Impl toVal dA dB dC)
+
+
+map3Impl : (a -> b -> c -> value) -> Decoder a -> Decoder b -> Decoder c -> Node -> Result Error value
+map3Impl toVal (Decoder dA) (Decoder dB) (Decoder dC) node =
+    Result.map3 toVal (dA node) (dB node) (dC node)
+
+
+map4 : (a -> b -> c -> d -> value) -> Decoder a -> Decoder b -> Decoder c -> Decoder d -> Decoder value
+map4 toVal dA dB dC dD =
+    Decoder (map4Impl toVal dA dB dC dD)
+
+
+map4Impl : (a -> b -> c -> d -> value) -> Decoder a -> Decoder b -> Decoder c -> Decoder d -> Node -> Result Error value
+map4Impl toVal (Decoder dA) (Decoder dB) (Decoder dC) (Decoder dD) node =
+    Result.map4 toVal (dA node) (dB node) (dC node) (dD node)
+
+
+map5 :
+    (a -> b -> c -> d -> e -> value)
+    -> Decoder a
+    -> Decoder b
+    -> Decoder c
+    -> Decoder d
+    -> Decoder e
+    -> Decoder value
+map5 toVal dA dB dC dD dE =
+    Decoder (map5Impl toVal dA dB dC dD dE)
+
+
+map5Impl :
+    (a -> b -> c -> d -> e -> value)
+    -> Decoder a
+    -> Decoder b
+    -> Decoder c
+    -> Decoder d
+    -> Decoder e
+    -> Node
+    -> Result Error value
+map5Impl toVal (Decoder dA) (Decoder dB) (Decoder dC) (Decoder dD) (Decoder dE) node =
+    Result.map5 toVal (dA node) (dB node) (dC node) (dD node) (dE node)
+
+
+{-| Equivalent to [`Json.Decode.Extra.andMap`][jdeam], allows writing XML decoders in sequential style.
+
+[jdeam]: http://package.elm-lang.org/packages/elm-community/json-extra/latest/Json-Decode-Extra#andMap
+
+    run
+        (succeed Tuple.pair
+            |> andMap (path ["string"] (single string))
+            |> andMap (path ["int"] (single int))
+        )
+        "<root><string>string</string><int>1</int></root>"
+    --> Ok ("string", 1)
+
+-}
+andMap : Decoder a -> Decoder (a -> b) -> Decoder b
+andMap =
+    map2 (|>)
 
 
 {-| Generates a decoder that results in the default value on failure.
@@ -606,7 +756,7 @@ map2 valueGen decoderA decoderB node =
 
 -}
 withDefault : a -> Decoder a -> Decoder a
-withDefault default decoder =
+withDefault default (Decoder decoder) =
     let
         applyDefault result =
             case result of
@@ -616,7 +766,7 @@ withDefault default decoder =
                 Err _ ->
                     Ok default
     in
-        decoder >> applyDefault
+    Decoder (decoder >> applyDefault)
 
 
 {-| Generates a decoder that results in a `Maybe` value.
@@ -632,7 +782,7 @@ Otherwise (in cases of `Ok`,) it succeeds with `Just` value.
 
 -}
 maybe : Decoder a -> Decoder (Maybe a)
-maybe decoder =
+maybe (Decoder decoder) =
     let
         maybify result =
             case result of
@@ -642,7 +792,7 @@ maybe decoder =
                 Err _ ->
                     Ok Nothing
     in
-        decoder >> maybify
+    Decoder (decoder >> maybify)
 
 
 {-| Generates a lazy decoder.
@@ -663,7 +813,7 @@ which happens when you define nested part of the above decoder as `(list someRec
 -}
 lazy : (() -> Decoder a) -> Decoder a
 lazy =
-    flip andThen (succeed ())
+    \a -> andThen a (succeed ())
 
 
 
@@ -709,7 +859,7 @@ For instance, to work with an XML document like:
 
 You should specify:
 
-    path ["Path", "Target"] (single string)
+    path [ "Path", "Target" ] (single string)
 
 Basic usages:
 
@@ -729,7 +879,12 @@ Decoders will report errors with path at which error happened as well as nearest
 
 -}
 path : List String -> ListDecoder a -> Decoder a
-path path_ listDecoder node =
+path path_ listDecoder =
+    Decoder (pathImpl path_ listDecoder)
+
+
+pathImpl : List String -> ListDecoder a -> Node -> Result Error a
+pathImpl path_ listDecoder node =
     node |> children |> query path_ |> decodeWithErrorContext path_ node listDecoder
 
 
@@ -750,14 +905,15 @@ query path_ nodes =
             nodes
 
         [ k ] ->
-            nodes
-                |> List.filter (hasName k)
+            List.filter (hasName k) nodes
 
         k :: ks ->
-            nodes
-                |> List.filter (hasName k)
-                |> List.concatMap children
-                |> query ks
+            let
+                collectedChildren =
+                    nodes |> List.filter (hasName k) |> List.concatMap children
+            in
+            -- Enforce TCO; <https://github.com/elm/compiler/issues/1770>
+            query ks collectedChildren
 
 
 hasName : String -> Node -> Bool
@@ -771,13 +927,89 @@ hasName name node =
 
 
 decodeWithErrorContext : List String -> Node -> ListDecoder a -> List Node -> Result Error a
-decodeWithErrorContext path_ node listDecoder nodes =
+decodeWithErrorContext path_ node (ListDecoder listDecoder) nodes =
     case listDecoder nodes of
         Ok ok ->
             Ok ok
 
         Err err ->
             Err <| addPathAndNode path_ node err
+
+
+
+-- PIPELINE APIS
+
+
+{-| Decodes value at required XML path.
+
+    pipelineDecoder : Decoder ( String, List Int )
+    pipelineDecoder =
+        succeed Tuple.pair
+            |> requiredPath [ "path", "to", "string", "value" ] (single string)
+            |> requiredPath [ "path", "to", "int", "values" ] (list int)
+
+    run pipelineDecoder
+        """
+        <root>
+            <path>
+                <to>
+                    <string>
+                        <value>SomeString</value>
+                    </string>
+                    <int>
+                        <values>1</values>
+                        <values>2</values>
+                    </int>
+                </to>
+            </path>
+        </root>
+        """
+    --> Ok ( "SomeString", [ 1, 2 ] )
+
+-}
+requiredPath : List String -> ListDecoder a -> Decoder (a -> b) -> Decoder b
+requiredPath path_ listDecoderA =
+    map2 (|>) (path path_ listDecoderA)
+
+
+{-| Tries to decode value at optional XML path. Uses default value if the node is missing.
+
+    decoderWithDefault : Decoder String
+    decoderWithDefault =
+        succeed identity
+            |> optionalPath [ "optional", "path" ] (single string) "default"
+
+    run decoderWithDefault "<root><optional><path>string</path></optional></root>"
+    --> Ok "string"
+
+    run decoderWithDefault "<root></root>"
+    --> Ok "default"
+
+-}
+optionalPath : List String -> ListDecoder a -> a -> Decoder (a -> b) -> Decoder b
+optionalPath path_ listDecoderA default =
+    map2 (|>) (withDefault default (path path_ listDecoderA))
+
+
+{-| Decodes value at possible XML path into `Maybe` value.
+
+    maybeDecoder : Decoder (Maybe String)
+    maybeDecoder =
+        succeed identity
+            |> possiblePath [ "possible", "path" ] (single string)
+
+    run maybeDecoder "<root><possible><path>string</path></possible></root>"
+    --> Ok (Just "string")
+
+    run maybeDecoder "<root></root>"
+    --> Ok Nothing
+
+If you want to apply default value when the node is missing, use [`optionalWith`](#optionalWith).
+
+-}
+possiblePath : List String -> ListDecoder a -> Decoder (Maybe a -> b) -> Decoder b
+possiblePath path_ listDecoderA =
+    map2 (|>) (maybe (path path_ listDecoderA))
 
 
 
@@ -805,7 +1037,7 @@ errorToString error =
         DetailedError path_ node r ->
             problemToString r
                 ++ (" At: /" ++ String.join "/" path_)
-                ++ (", Node: " ++ Internal.formatNode node)
+                ++ (", Node: " ++ formatNode node)
 
 
 problemToString : Problem -> String

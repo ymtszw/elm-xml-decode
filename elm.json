@@ -1,0 +1,23 @@
+{
+    "type": "package",
+    "name": "ymtszw/elm-xml-decode",
+    "summary": "Xml decoder sharing the spirit of Json.Decode",
+    "license": "BSD-3-Clause",
+    "version": "1.0.1",
+    "source-directories": [
+        "src"
+    ],
+    "exposed-modules": [
+        "Xml.Decode"
+    ],
+    "elm-version": "0.19.0 <= v < 0.20.0",
+    "dependencies": {
+        "elm/core": "1.0.0 <= v < 2.0.0",
+        "elm/parser": "1.1.0 <= v < 2.0.0",
+        "elm/time": "1.0.0 <= v < 2.0.0",
+        "jinjor/elm-xml-parser": "2.0.0 <= v < 3.0.0"
+    },
+    "test-dependencies": {
+        "elm-explorations/test": "1.1.0 <= v < 2.0.0"
+    }
+}

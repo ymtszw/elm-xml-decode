@@ -1,8 +1,4 @@
 {
   "root": "../src",
-  "tests": [
-    "Xml.Decode",
-    "Xml.Decode.Extra",
-    "Xml.Decode.Pipeline"
-  ]
+  "tests": ["Xml.Decode", "README.md"]
 }

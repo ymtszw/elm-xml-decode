@@ -37,7 +37,7 @@ escapableString =
 
 noteDecoder : XD.Decoder ( String, String, String, String )
 noteDecoder =
-    XD.succeed (,,,)
+    XD.succeed (\a b c d -> ( a, b, c, d ))
         |: XD.path [ "to" ] (XD.single XD.string)
         |: XD.path [ "from" ] (XD.single XD.string)
         |: XD.path [ "heading" ] (XD.single XD.string)
@@ -55,7 +55,7 @@ type alias CD =
 
 cdCatalogDecoder : XD.Decoder CD
 cdCatalogDecoder =
-    XD.succeed (,,,,,)
+    XD.succeed (\a b c d e f -> ( a, b, c, d, e, f ))
         |: XD.path [ "TITLE" ] (XD.single XD.string)
         |: XD.path [ "ARTIST" ] (XD.single XD.string)
         |: XD.path [ "COUNTRY" ] (XD.single XD.string)
