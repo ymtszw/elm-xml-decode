@@ -2,21 +2,21 @@ version: 2
 jobs:
   test:
     docker:
-      - image: ymtszw/elm_for_ci:0.18
+      - image: ymtszw/elm_for_ci:0.19
     working_directory: ~/repo
     steps:
       - restore_cache:
           keys:
-          - repo-{{ .Branch }}-{{ .Revision }}
-          - repo-{{ .Branch }}-
-          - repo-
+          - 0.19-{{ .Branch }}-{{ .Revision }}
+          - 0.19-{{ .Branch }}-
+          - 0.19-
       - checkout
-      - run: elm-verify-examples
+      - run: elm-verify-examples --elm-test=elm-test
       - run: elm-test
       - save_cache:
           paths:
-            - .
-          key: repo-{{ .Branch }}-{{ .Revision }}
+            - ~/.elm
+          key: 0.19-{{ .Branch }}-{{ .Revision }}
 
 workflows:
   version: 2
