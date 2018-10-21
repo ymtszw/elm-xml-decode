@@ -1,0 +1,4 @@
+{
+  "root": "../src",
+  "tests": ["Xml.Decode", "README.md"]
+}
