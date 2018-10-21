@@ -1,8 +1,8 @@
 module Xml.Decode exposing
     ( Decoder, ListDecoder, Error(..), Problem(..)
     , run, decodeString, decodeXml
-    , string, int, float, bool, date
-    , stringAttr, intAttr, floatAttr, boolAttr, dateAttr
+    , string, int, float, bool
+    , stringAttr, intAttr, floatAttr, boolAttr
     , single, list, leakyList
     , succeed, fail, andThen, map, map2, withDefault, maybe, lazy
     , path
@@ -57,12 +57,12 @@ Examples in this package are doc-tested.
 
 # Decoders
 
-@docs string, int, float, bool, date
+@docs string, int, float, bool
 
 
 # Attribute Decoders
 
-@docs stringAttr, intAttr, floatAttr, boolAttr, dateAttr
+@docs stringAttr, intAttr, floatAttr, boolAttr
 
 
 # List Decoders
@@ -86,8 +86,7 @@ Examples in this package are doc-tested.
 
 -}
 
-import Date exposing (Date)
-import Xml.Decode.Internal as Internal
+import Xml.Decode.Internal exposing (..)
 import XmlParser exposing (Attribute, Node(..), Xml)
 
 
@@ -318,21 +317,6 @@ toBool str =
             Err "Not a valid boolean value."
 
 
-{-| Decodes to `Date`.
-
-[It uses `new Date()` of JavaScript under the hood][date].
-
-[Likely this needs to be updated for later versoins of core][depr].
-
-[date]: https://github.com/elm-lang/core/blob/5.1.1/src/Native/Date.js#L5
-[depr]: https://github.com/elm-lang/core/commit/a892fdf705f83523752c5469384e9880fbdfe3b1#diff-25d902c24283ab8cfbac54dfa101ad31
-
--}
-date : Decoder Date
-date =
-    cdata Date.fromString
-
-
 
 -- ATTRIBUTE DECODERS
 
@@ -429,13 +413,6 @@ floatAttr name_ =
 boolAttr : String -> Decoder Bool
 boolAttr name_ =
     cdataAttr name_ toBool
-
-
-{-| Decodes an attribute value into `Date`.
--}
-dateAttr : String -> Decoder Date
-dateAttr name_ =
-    cdataAttr name_ Date.fromString
 
 
 
