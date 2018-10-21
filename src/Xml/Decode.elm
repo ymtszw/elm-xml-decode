@@ -826,14 +826,15 @@ query path_ nodes =
             nodes
 
         [ k ] ->
-            nodes
-                |> List.filter (hasName k)
+            List.filter (hasName k) nodes
 
         k :: ks ->
-            nodes
-                |> List.filter (hasName k)
-                |> List.concatMap children
-                |> query ks
+            let
+                collectedChildren =
+                    nodes |> List.filter (hasName k) |> List.concatMap children
+            in
+            -- Enforce TCO; <https://github.com/elm/compiler/issues/1770>
+            query ks collectedChildren
 
 
 hasName : String -> Node -> Bool
