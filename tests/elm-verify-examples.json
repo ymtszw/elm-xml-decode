@@ -1,8 +1,0 @@
-{
-  "root": "../src",
-  "tests": [
-    "Xml.Decode",
-    "Xml.Decode.Extra",
-    "Xml.Decode.Pipeline"
-  ]
-}
