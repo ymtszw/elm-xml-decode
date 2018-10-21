@@ -20,9 +20,6 @@ Using [`XmlParser`][xp] as its parser component.
 
 # Basic Example
 
-Also see examples in [`Xml.Decode.Pipeline`](./Xml-Decode-Pipeline)
-and [`Xml.Decode.Extra`](./Xml-Decode-Extra) for alternative styles.
-
 Examples in this package are doc-tested.
 
     exampleDecoder : Decoder ( String, List Int )

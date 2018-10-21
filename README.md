@@ -34,18 +34,18 @@ Basics:
 ```elm
 import Xml.Decode exposing (..)
 
-type alias Example =
+type alias Data =
     { string : String
     , integers : List Int
     }
 
-exampleDecoder : Decoder Example
-exampleDecoder =
-    map2 Example
+dataDecoder : Decoder Data
+dataDecoder =
+    map2 Data
         (path [ "path", "to", "string", "value" ] (single string))
         (path [ "path", "to", "int", "values" ] (list int))
 
-run exampleDecoder
+run dataDecoder
     """
     <root>
         <path>
@@ -69,9 +69,9 @@ run exampleDecoder
 We have `map`, `map2` and variants, though the Pipeline style is also possible:
 
 ```elm
-pipelineDecoder : Decoder Example
+pipelineDecoder : Decoder Data
 pipelineDecoder =
-    succeed Example
+    succeed Data
         |> requiredPath [ "path", "to", "string", "value" ] (single string)
         |> requiredPath [ "path", "to", "int", "values" ] (list int)
 ```
