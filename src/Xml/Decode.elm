@@ -550,24 +550,34 @@ This [`ListDecoder`](#ListDecoder) fails if any incoming items cannot be decoded
     run (path [ "tag" ] (list string)) "<root><tag>string1</tag><tag>string2</tag></root>"
     --> Ok [ "string1", "string2" ]
 
+    run (path [ "tag" ] (list int)) "<root><tag>1</tag><tag>nonInt</tag></root>"
+    --> Err "could not convert string 'nonInt' to an Int At: /tag, Node: <tag>nonInt</tag>"
+
 -}
 list : Decoder a -> ListDecoder (List a)
 list decoder =
-    List.foldr (listReducer decoder) (Ok [])
+    listImpl decoder []
 
 
-listReducer : Decoder a -> Node -> Result Error (List a) -> Result Error (List a)
-listReducer decoder node accResult =
-    node
-        |> decoder
-        |> Result.map2 (\b a -> (::) a b) accResult
-        |> Result.mapError (addPathAndNode [] node)
+listImpl : Decoder a -> List a -> List Node -> Result Error (List a)
+listImpl decoder acc nodes =
+    case nodes of
+        [] ->
+            Ok (List.reverse acc)
+
+        n :: ns ->
+            case decoder n of
+                Ok item ->
+                    listImpl decoder (item :: acc) ns
+
+                Err e ->
+                    Err e
 
 
 {-| Variation of [`list`](#list), which ignores items that cannot be decoded.
 
-    run (path [ "tag" ] (leakyList string)) "<root><tag>string1</tag><tag><nested>string2</nested></tag></root>"
-    --> Ok [ "string1" ]
+    run (path [ "tag" ] (leakyList int)) "<root><tag>1</tag><tag>nonINt</tag></root>"
+    --> Ok [ 1 ]
 
 -}
 leakyList : Decoder a -> ListDecoder (List a)
