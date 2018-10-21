@@ -96,6 +96,7 @@ Allow writing Decoders in Pipeline-style, just like [`Json.Decode.Pipeline`][jdp
 
 -}
 
+import Parser
 import Xml.Decode.Internal exposing (..)
 import XmlParser exposing (Attribute, Node(..), Xml)
 
@@ -165,13 +166,76 @@ explicitly use [`XmlParser.parse`][xpp] and [`decodeXml`](#decodeXml).
 
 -}
 decodeString : Decoder a -> String -> Result String a
-decodeString decoder =
-    let
-        decodeAndMapError =
-            decodeXml decoder >> Result.mapError errorToString
-    in
-    -- Could use disassembling Parser.Error into more readable string here; though we skip it for now
-    XmlParser.parse >> Result.mapError toString >> Result.andThen decodeAndMapError
+decodeString decoder s =
+    case XmlParser.parse s of
+        Ok xml ->
+            case decodeXml decoder xml of
+                Ok decoded ->
+                    Ok decoded
+
+                Err dErr ->
+                    Err (errorToString dErr)
+
+        Err pErr ->
+            Err (parseErrorsToString pErr)
+
+
+parseErrorsToString : List { advanced | row : Int, col : Int, problem : Parser.Problem } -> String
+parseErrorsToString deadEnds =
+    deadEnds
+        |> List.map
+            (\deadEnd ->
+                ("At [" ++ String.fromInt deadEnd.row ++ "," ++ String.fromInt deadEnd.col ++ "], ")
+                    ++ parserProblemToString deadEnd.problem
+            )
+        |> String.join "\n"
+        |> String.append "Invalid XML document.\n"
+
+
+parserProblemToString : Parser.Problem -> String
+parserProblemToString problem =
+    case problem of
+        Parser.Expecting expect ->
+            "I was expecting: " ++ expect
+
+        Parser.ExpectingInt ->
+            "I was expecting an integer"
+
+        Parser.ExpectingHex ->
+            "I was expecting a hexadecimal"
+
+        Parser.ExpectingOctal ->
+            "I was expecting an octal"
+
+        Parser.ExpectingBinary ->
+            "I was expecting a binary"
+
+        Parser.ExpectingFloat ->
+            "I was expecting a float"
+
+        Parser.ExpectingNumber ->
+            "I was expecting a number"
+
+        Parser.ExpectingVariable ->
+            "I was expecting a variable"
+
+        Parser.ExpectingSymbol symbol ->
+            "I was expecting a symbol: " ++ symbol
+
+        Parser.ExpectingKeyword keyword ->
+            "I was expecting a keyword: " ++ keyword
+
+        Parser.ExpectingEnd ->
+            "I was expecting the end of input"
+
+        Parser.UnexpectedChar ->
+            "I got an unexpected character"
+
+        Parser.Problem text ->
+            text
+
+        Parser.BadRepeat ->
+            "I got a bad repetition"
 
 
 {-| Decodes an [`XmlParser.Xml`][xpx] value into other type of Elm value.
