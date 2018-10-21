@@ -683,6 +683,7 @@ map2Impl valueGen (Decoder decoderA) (Decoder decoderB) node =
     Result.map2 valueGen (decoderA node) (decoderB node)
 
 
+{-| -}
 map3 : (a -> b -> c -> value) -> Decoder a -> Decoder b -> Decoder c -> Decoder value
 map3 toVal dA dB dC =
     Decoder (map3Impl toVal dA dB dC)
@@ -693,6 +694,7 @@ map3Impl toVal (Decoder dA) (Decoder dB) (Decoder dC) node =
     Result.map3 toVal (dA node) (dB node) (dC node)
 
 
+{-| -}
 map4 : (a -> b -> c -> d -> value) -> Decoder a -> Decoder b -> Decoder c -> Decoder d -> Decoder value
 map4 toVal dA dB dC dD =
     Decoder (map4Impl toVal dA dB dC dD)
@@ -703,6 +705,7 @@ map4Impl toVal (Decoder dA) (Decoder dB) (Decoder dC) (Decoder dD) node =
     Result.map4 toVal (dA node) (dB node) (dC node) (dD node)
 
 
+{-| -}
 map5 :
     (a -> b -> c -> d -> e -> value)
     -> Decoder a
