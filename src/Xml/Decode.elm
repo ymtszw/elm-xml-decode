@@ -4,7 +4,7 @@ module Xml.Decode exposing
     , string, int, float, bool
     , stringAttr, intAttr, floatAttr, boolAttr
     , single, list, leakyList
-    , succeed, fail, andThen, map, map2, withDefault, maybe, lazy
+    , succeed, fail, andThen, map, map2, andMap, withDefault, maybe, lazy
     , path
     , errorToString
     )
@@ -72,7 +72,7 @@ Examples in this package are doc-tested.
 
 # Decoder Utilities
 
-@docs succeed, fail, andThen, map, map2, withDefault, maybe, lazy
+@docs succeed, fail, andThen, map, map2, andMap, withDefault, maybe, lazy
 
 
 # Node Locater
@@ -560,6 +560,24 @@ map2 valueGen decoderA decoderB node =
     Result.map2 valueGen
         (decoderA node)
         (decoderB node)
+
+
+{-| Equivalent to [`Json.Decode.Extra.andMap`][jdeam], allows writing XML decoders in sequential style.
+
+[jdeam]: http://package.elm-lang.org/packages/elm-community/json-extra/latest/Json-Decode-Extra#andMap
+
+    run
+        (succeed Tuple.pair
+            |> andMap (path ["string"] (single string))
+            |> andMap (path ["int"] (single int))
+        )
+        "<root><string>string</string><int>1</int></root>"
+    --> Ok ("string", 1)
+
+-}
+andMap : Decoder a -> Decoder (a -> b) -> Decoder b
+andMap =
+    map2 (|>)
 
 
 {-| Generates a decoder that results in the default value on failure.
