@@ -6,6 +6,7 @@ module Xml.Decode exposing
     , single, list, leakyList
     , succeed, fail, andThen, map, map2, andMap, withDefault, maybe, lazy
     , path
+    , requiredPath, optionalPath, possiblePath
     , errorToString
     )
 
@@ -78,6 +79,15 @@ Examples in this package are doc-tested.
 # Node Locater
 
 @docs path
+
+
+# Pipeline APIs
+
+Allow writing Decoders in Pipeline-style, just like [`Json.Decode.Pipeline`][jdp].
+
+[jdp]: http://package.elm-lang.org/packages/NoRedInk/elm-decode-pipeline/latest/Json-Decode-Pipeline
+
+@docs requiredPath, optionalPath, possiblePath
 
 
 # Error Utility
@@ -762,6 +772,82 @@ decodeWithErrorContext path_ node listDecoder nodes =
 
         Err err ->
             Err <| addPathAndNode path_ node err
+
+
+
+-- PIPELINE APIS
+
+
+{-| Decodes value at required XML path.
+
+    pipelineDecoder : Decoder ( String, List Int )
+    pipelineDecoder =
+        succeed Tuple.pair
+            |> requiredPath [ "path", "to", "string", "value" ] (single string)
+            |> requiredPath [ "path", "to", "int", "values" ] (list int)
+
+    run pipelineDecoder
+        """
+        <root>
+            <path>
+                <to>
+                    <string>
+                        <value>SomeString</value>
+                    </string>
+                    <int>
+                        <values>1</values>
+                        <values>2</values>
+                    </int>
+                </to>
+            </path>
+        </root>
+        """
+    --> Ok ( "SomeString", [ 1, 2 ] )
+
+-}
+requiredPath : List String -> ListDecoder a -> Decoder (a -> b) -> Decoder b
+requiredPath path_ listDecoderA =
+    map2 (|>) (path path_ listDecoderA)
+
+
+{-| Tries to decode value at optional XML path. Uses default value if the node is missing.
+
+    decoderWithDefault : Decoder String
+    decoderWithDefault =
+        succeed identity
+            |> optionalPath [ "optional", "path" ] (single string) "default"
+
+    run decoderWithDefault "<root><optional><path>string</path></optional></root>"
+    --> Ok "string"
+
+    run decoderWithDefault "<root></root>"
+    --> Ok "default"
+
+-}
+optionalPath : List String -> ListDecoder a -> a -> Decoder (a -> b) -> Decoder b
+optionalPath path_ listDecoderA default =
+    map2 (|>) (withDefault default (path path_ listDecoderA))
+
+
+{-| Decodes value at possible XML path into `Maybe` value.
+
+    maybeDecoder : Decoder (Maybe String)
+    maybeDecoder =
+        succeed identity
+            |> possiblePath [ "possible", "path" ] (single string)
+
+    run maybeDecoder "<root><possible><path>string</path></possible></root>"
+    --> Ok (Just "string")
+
+    run maybeDecoder "<root></root>"
+    --> Ok Nothing
+
+If you want to apply default value when the node is missing, use [`optionalWith`](#optionalWith).
+
+-}
+possiblePath : List String -> ListDecoder a -> Decoder (Maybe a -> b) -> Decoder b
+possiblePath path_ listDecoderA =
+    map2 (|>) (maybe (path path_ listDecoderA))
 
 
 
