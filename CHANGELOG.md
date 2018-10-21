@@ -1,8 +1,9 @@
-# Next major release
+# 2.0.0
 
 ## API changes
 
 * `Decoder` and `ListDecoder` are now opaque types.
+* `fail` now takes plain `String`, allowing easier failure construction.
 * Removed `date` and `dateAttr` since core `Date` module has been removed.
     * For now, pipe `string` or `stringAttr` into `andThen` with your favorite date string parser,
       such as [rtfeldman/elm-iso8601-date-strings][iso].
