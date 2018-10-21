@@ -1,6 +1,8 @@
 # Next major release
 
-* Elements with no children are now decoded into empty strings (`""`) when using `string`.
+## API changes
+
+* `Decoder` and `ListDecoder` are now opaque types.
 * Removed `date` and `dateAttr` since core `Date` module has been removed.
     * For now, pipe `string` or `stringAttr` into `andThen` with your favorite date string parser,
       such as [rtfeldman/elm-iso8601-date-strings][iso].
@@ -9,3 +11,7 @@
 * Collapse `Xml.Decode.Extra` and `Xml.Decode.Pipeline` into `Xml.Decode`.
 
 [iso]: https://package.elm-lang.org/packages/rtfeldman/elm-iso8601-date-strings/latest/Iso8601
+
+## Behavior changes
+
+* Elements with no children are now decoded into empty strings (`""`) when using `string`.
