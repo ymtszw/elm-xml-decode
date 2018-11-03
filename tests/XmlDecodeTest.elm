@@ -201,6 +201,42 @@ testMaybe decoder input expect =
                 |> Expect.equal (Ok expect)
 
 
+type IntOrBool
+    = I Int
+    | B Bool
+
+
+oneOfSuite : Test
+oneOfSuite =
+    describe "oneOf"
+        [ testOneOfOk "[ int ]" [ map I int ] "1" (I 1)
+        , testOneOfOk "[ bool ]" [ map B bool ] "1" (B True)
+        , testOneOfOk "[ int, bool ]" [ map I int, map B bool ] "1" (I 1)
+        , testOneOfOk "[ int, bool ]" [ map I int, map B bool ] "true" (B True)
+        , testOneOfOk "[ bool, int ]" [ map B bool, map I int ] "1" (B True)
+        , testOneOfOk "[ bool, int ]" [ map B bool, map I int ] "2" (I 2)
+        , testOneOfErr "[]" [] "1"
+        , testOneOfErr "[ int ]" [ map I int ] "true"
+        , testOneOfErr "[ bool ]" [ map B bool ] "2"
+        , testOneOfErr "[ int, bool ]" [ map I int, map B bool ] "nonInt,nonBool"
+        , testOneOfErr "[ bool, int ]" [ map B bool, map I int ] "nonInt,nonBool"
+        ]
+
+
+testOneOfOk : String -> List (Decoder IntOrBool) -> String -> IntOrBool -> Test
+testOneOfOk desc decoders input expect =
+    test ("should decode " ++ xml input ++ " into " ++ Debug.toString expect ++ " by " ++ desc) <|
+        \_ ->
+            run (oneOf decoders) (xml input) |> Expect.equal (Ok expect)
+
+
+testOneOfErr : String -> List (Decoder IntOrBool) -> String -> Test
+testOneOfErr desc decoders input =
+    test ("should fail to decode " ++ xml input ++ " by " ++ desc) <|
+        \_ ->
+            run (oneOf decoders) (xml input) |> Expect.err
+
+
 suite : Test
 suite =
     describe "Xml.Decode"
@@ -211,4 +247,5 @@ suite =
         , pathSuite
         , withDefaultSuite
         , maybeSuite
+        , oneOfSuite
         ]
