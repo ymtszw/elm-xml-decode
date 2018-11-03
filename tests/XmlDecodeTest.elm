@@ -96,6 +96,7 @@ pathSuite =
         [ singleSuite
         , listSuite
         , leakyListSuite
+        , indexSuite
         ]
 
 
@@ -167,6 +168,22 @@ testLeakyListPathOk path_ doc expect =
         \_ ->
             run (path path_ (leakyList int)) (xml doc)
                 |> Expect.equal (Ok expect)
+
+
+indexSuite : Test
+indexSuite =
+    let
+        xml_ =
+            xml "<tag>0</tag><tag>1</tag>"
+    in
+    describe "index"
+        [ test "should decode node at index 0" <|
+            \_ -> run (path [ "tag" ] (index 0 int)) xml_ |> Expect.equal (Ok 0)
+        , test "should decode node at index 1" <|
+            \_ -> run (path [ "tag" ] (index 1 int)) xml_ |> Expect.equal (Ok 1)
+        , test "should fail for node at  index 2" <|
+            \_ -> run (path [ "tag" ] (index 2 int)) xml_ |> Expect.err
+        ]
 
 
 withDefaultSuite : Test
@@ -246,41 +263,47 @@ errorMessageSuite =
             [ "Node: <root>nonInt</root>"
             , "could not convert string 'nonInt' to an Int"
             ]
-        , testErrorMessages (path [ "nested" ] (single (map I int)))
-            "<nested>nonInt</nested>"
-            [ "Path: /nested"
-            , "Node: <nested>nonInt</nested>"
+        , testErrorMessages (path [ "tag" ] (single (map I int)))
+            "<tag>nonInt</tag>"
+            [ "Path: /tag"
+            , "Node: <tag>nonInt</tag>"
             , "could not convert string 'nonInt' to an Int"
             ]
-        , testErrorMessages (path [ "nested", "nested" ] (single (map I int)))
-            "<nested><nested>nonInt</nested></nested>"
-            [ "Path: /nested/nested"
-            , "Node: <nested>nonInt</nested>"
+        , testErrorMessages (path [ "nested", "tag" ] (single (map I int)))
+            "<nested><tag>nonInt</tag></nested>"
+            [ "Path: /nested/tag"
+            , "Node: <tag>nonInt</tag>"
             , "could not convert string 'nonInt' to an Int"
             ]
-        , testErrorMessages (path [ "nested" ] (single (map I int)))
-            "<nested>nonInt</nested><nested>nonInt</nested>"
-            [ "Path: /nested"
-            , "Node: <root><nested>nonInt</nested><nested>nonInt</nested></root>"
+        , testErrorMessages (path [ "tag" ] (single (map I int)))
+            "<tag>nonInt</tag><tag>nonInt</tag>"
+            [ "Path: /tag"
+            , "Node: <root><tag>nonInt</tag><tag>nonInt</tag></root>"
             , "Multiple nodes found."
             ]
-        , testErrorMessages (path [ "nested" ] (single (oneOf [ map I int, map B bool ])))
-            "<nested>nonInt,nonBool</nested>"
-            [ "Path: /nested"
+        , testErrorMessages (path [ "tag" ] (index 2 (map I int)))
+            "<tag>0</tag><tag>1</tag>"
+            [ "Path: /tag"
+            , "Node: <root><tag>0</tag><tag>1</tag></root>"
+            , "Expected a node at index [2], but only see 2 nodes."
+            ]
+        , testErrorMessages (path [ "tag" ] (single (oneOf [ map I int, map B bool ])))
+            "<tag>nonInt,nonBool</tag>"
+            [ "Path: /tag"
             , "All decoders failed:"
-            , " 1) Node: <nested>nonInt,nonBool</nested>"
+            , " 1) Node: <tag>nonInt,nonBool</tag>"
             , "    could not convert string 'nonInt,nonBool' to an Int"
-            , " 2) Node: <nested>nonInt,nonBool</nested>"
+            , " 2) Node: <tag>nonInt,nonBool</tag>"
             , "    Not a valid boolean value."
             ]
-        , testErrorMessages (path [ "nested" ] (single (oneOf [ map I int, oneOf [ map B bool ] ])))
-            "<nested>nonInt,nonBool</nested>"
-            [ "Path: /nested"
+        , testErrorMessages (path [ "tag" ] (single (oneOf [ map I int, oneOf [ map B bool ] ])))
+            "<tag>nonInt,nonBool</tag>"
+            [ "Path: /tag"
             , "All decoders failed:"
-            , " 1) Node: <nested>nonInt,nonBool</nested>"
+            , " 1) Node: <tag>nonInt,nonBool</tag>"
             , "    could not convert string 'nonInt,nonBool' to an Int"
             , " 2) All decoders failed:"
-            , "     1) Node: <nested>nonInt,nonBool</nested>"
+            , "     1) Node: <tag>nonInt,nonBool</tag>"
             , "        Not a valid boolean value."
             ]
         ]

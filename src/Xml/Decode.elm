@@ -3,7 +3,7 @@ module Xml.Decode exposing
     , run, decodeString, decodeXml
     , string, int, float, bool
     , stringAttr, intAttr, floatAttr, boolAttr
-    , single, list, leakyList
+    , single, list, leakyList, index
     , succeed, fail, oneOf, andThen, map, map2, map3, map4, map5, andMap, withDefault, maybe, lazy
     , path
     , requiredPath, optionalPath, possiblePath
@@ -65,7 +65,7 @@ Examples in this package are doc-tested.
 
 # List Decoders
 
-@docs single, list, leakyList
+@docs single, list, leakyList, index
 
 
 # Decoder Utilities
@@ -598,6 +598,40 @@ accumlateOk result acc =
             Result.map ((::) a) acc
 
 
+{-| Similar to `Json.Decode.index`, decode from list of nodes at some index.
+
+Useful for "narrowing down" your saerch paths.
+
+Fails if there are not enough nodes.
+
+-}
+index : Int -> Decoder a -> ListDecoder a
+index index_ decoder =
+    ListDecoder (indexImpl 0 index_ decoder)
+
+
+indexImpl : Int -> Int -> Decoder a -> ( List Node, Node ) -> Result Error a
+indexImpl found index_ (Decoder dec) ( nodes, ancestor ) =
+    case nodes of
+        [] ->
+            Err <|
+                Failure
+                    ("Expected a node at index ["
+                        ++ String.fromInt index_
+                        ++ "], but only see "
+                        ++ String.fromInt found
+                        ++ " nodes."
+                    )
+                    ancestor
+
+        node :: ns ->
+            if found == index_ then
+                dec node
+
+            else
+                indexImpl (found + 1) index_ (Decoder dec) ( ns, ancestor )
+
+
 
 -- DECODER UTILITIES
 
@@ -857,8 +891,11 @@ In the above example, [`single`](#single) and [`list`](#list) are [`ListDecoder`
 
 [xpn]: http://package.elm-lang.org/packages/jinjor/elm-xml-parser/latest/XmlParser#Node
 
-If you want to perform complex resolution of multiple matches from `path`,
-you can implement your own [`ListDecoder`](#ListDecoder)s.
+It collects ALL nodes matching the path in breadth-first manner.
+If you need to collect nodes only from a specific intermediate node that fulfills some conditions,
+(e.g. `path [ "a", "b" ]`, but only in 3rd "<a>...</a>")
+you need to split the path and explicitly define a Decoder that narrows down the path.
+Be careful not to accidentally include nodes from not-targeted ancestors.
 
 Note that in the path, you must "start" at the root scope.
 For instance, to work with an XML document like:
