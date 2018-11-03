@@ -1,8 +1,9 @@
-# Next minor release
+# 3.0.0
 
 ## API changes
 
 * Added `oneOf`.
+* Re-define `Error` structure, aligned with with `Json.Decode.Error`.
 
 ## Behavior changes
 

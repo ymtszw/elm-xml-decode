@@ -136,6 +136,7 @@ listSuite =
         , testListPathOk [ "tag" ] "<tag>nonEmpty</tag><tag></tag>" [ "nonEmpty", "" ]
         , testListPathOk [ "tag" ] "<tag>value1</tag>" [ "value1" ]
         , testListPathOk [ "tag" ] "" []
+        , testListPathOk [ "wrong", "tag" ] "<correct><tag>value1</tag></correct>" []
         , test "should fail to decode into list when value is not decodable" <|
             \_ ->
                 run (path [ "tag" ] (list int)) (xml "<tag>nonInt</tag>") |> Expect.err
@@ -242,8 +243,7 @@ errorMessageSuite =
     describe "errorToString"
         [ testErrorMessages (map I int)
             "nonInt"
-            [ "Path: /"
-            , "Node: <root>nonInt</root>"
+            [ "Node: <root>nonInt</root>"
             , "could not convert string 'nonInt' to an Int"
             ]
         , testErrorMessages (path [ "nested" ] (single (map I int)))
@@ -267,26 +267,20 @@ errorMessageSuite =
         , testErrorMessages (path [ "nested" ] (single (oneOf [ map I int, map B bool ])))
             "<nested>nonInt,nonBool</nested>"
             [ "Path: /nested"
-            , "Node: <root><nested>nonInt,nonBool</nested></root>"
             , "All decoders failed:"
-            , " 1) Path: /"
-            , "    Node: <nested>nonInt,nonBool</nested>"
+            , " 1) Node: <nested>nonInt,nonBool</nested>"
             , "    could not convert string 'nonInt,nonBool' to an Int"
-            , " 2) Path: /"
-            , "    Node: <nested>nonInt,nonBool</nested>"
+            , " 2) Node: <nested>nonInt,nonBool</nested>"
             , "    Not a valid boolean value."
             ]
         , testErrorMessages (path [ "nested" ] (single (oneOf [ map I int, oneOf [ map B bool ] ])))
             "<nested>nonInt,nonBool</nested>"
             [ "Path: /nested"
-            , "Node: <root><nested>nonInt,nonBool</nested></root>"
             , "All decoders failed:"
-            , " 1) Path: /"
-            , "    Node: <nested>nonInt,nonBool</nested>"
+            , " 1) Node: <nested>nonInt,nonBool</nested>"
             , "    could not convert string 'nonInt,nonBool' to an Int"
             , " 2) All decoders failed:"
-            , "     1) Path: /"
-            , "        Node: <nested>nonInt,nonBool</nested>"
+            , "     1) Node: <nested>nonInt,nonBool</nested>"
             , "        Not a valid boolean value."
             ]
         ]

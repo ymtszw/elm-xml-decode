@@ -1,5 +1,5 @@
 module Xml.Decode exposing
-    ( Decoder, ListDecoder, Error(..), Problem(..)
+    ( Decoder, ListDecoder, Error(..)
     , run, decodeString, decodeXml
     , string, int, float, bool
     , stringAttr, intAttr, floatAttr, boolAttr
@@ -45,7 +45,7 @@ Examples in this package are doc-tested.
 
 # Types
 
-@docs Decoder, ListDecoder, Error, Problem
+@docs Decoder, ListDecoder, Error
 
 
 # Decode Executor
@@ -112,34 +112,22 @@ type Decoder a
 
 {-| A function that knows how to decode list of XML nodes into Elm value.
 
-Used in conjunction with "query" functions such as [`path`](#path).
+They are constructed by functions such ad [`single`](#single) or [`list`](#list),
+then used in conjunction with [`path`](#path).
+
+See [`path`](#path) for examples.
 
 -}
 type ListDecoder a
-    = ListDecoder (List Node -> Result Error a)
+    = ListDecoder (( List Node, Node ) -> Result Error a)
 
 
 {-| Represents error on decode execution.
-
-`DetailedError` will tell you:
-
-  - where the error happened
-  - what kind of node actually was there
-
 -}
 type Error
-    = SimpleError Problem
-    | DetailedError (List String) Node Problem
-
-
-{-| Possible problems that can happen during decoding.
--}
-type Problem
-    = NodeNotFound
-    | AttributeNotFound String
-    | Duplicate
-    | Unparsable String
+    = Path (List String) Error
     | OneOf (List Error)
+    | Failure String Node
 
 
 
@@ -295,7 +283,7 @@ If you want to extract values from node attribute, use [`stringAttr`](#stringAtt
     --> Ok ""
 
     run string "<root><nested>string</nested></root>"
-    --> Err "Path: /\nNode: <root><nested>string</nested></root>\nThe node is not a simple text node."
+    --> Err "Node: <root><nested>string</nested></root>\nThe node is not a simple text node."
 
 -}
 string : Decoder String
@@ -311,8 +299,8 @@ cdata generator =
 cdataImpl : (String -> Result String a) -> Node -> Result Error a
 cdataImpl generator node =
     let
-        unparsable =
-            DetailedError [] node << Unparsable
+        unparsable message =
+            Failure message node
 
         gen =
             generator >> Result.mapError unparsable
@@ -338,7 +326,7 @@ cdataImpl generator node =
     --> Ok 1
 
     run int "<root>value</root>"
-    --> Err "Path: /\nNode: <root>value</root>\ncould not convert string 'value' to an Int"
+    --> Err "Node: <root>value</root>\ncould not convert string 'value' to an Int"
 
 -}
 int : Decoder Int
@@ -362,7 +350,7 @@ convertCdata toType typeStr raw =
     --> Ok 1.0
 
     run float "<root>value</root>"
-    --> Err "Path: /\nNode: <root>value</root>\ncould not convert string 'value' to a Float"
+    --> Err "Node: <root>value</root>\ncould not convert string 'value' to a Float"
 
 -}
 float : Decoder Float
@@ -387,7 +375,7 @@ We follow this specification, case-sensitively.
     --> Ok True
 
     run bool "<root>value</root>"
-    --> Err "Path: /\nNode: <root>value</root>\nNot a valid boolean value."
+    --> Err "Node: <root>value</root>\nNot a valid boolean value."
 
 -}
 bool : Decoder Bool
@@ -426,7 +414,7 @@ Fails if the node does not have specified attribute.
     --> Ok "value"
 
     run (stringAttr "attr") "<root></root>"
-    --> Err "Path: /\nNode: <root></root>\nAttribute 'attr' not found."
+    --> Err "Node: <root></root>\nAttribute 'attr' not found."
 
 [xpn]: http://package.elm-lang.org/packages/jinjor/elm-xml-parser/latest/XmlParser#Node
 
@@ -445,10 +433,10 @@ cdataAttrImpl : String -> (String -> Result String a) -> Node -> Result Error a
 cdataAttrImpl name_ generator node =
     let
         notFound =
-            DetailedError [] node (AttributeNotFound name_)
+            Failure ("Attribute '" ++ name_ ++ "' not found.") node
 
         gen =
-            generator >> Result.mapError (DetailedError [] node << Unparsable)
+            generator >> Result.mapError (\message -> Failure message node)
     in
     case node of
         Text _ ->
@@ -481,7 +469,7 @@ fetchAttributeValue name_ attrs =
     --> Ok 1
 
     run (intAttr "attr") "<root attr='value'></root>"
-    --> Err "Path: /\nNode: <root attr=\"value\"></root>\ncould not convert string 'value' to an Int"
+    --> Err "Node: <root attr=\"value\"></root>\ncould not convert string 'value' to an Int"
 
 -}
 intAttr : String -> Decoder Int
@@ -495,7 +483,7 @@ intAttr name_ =
     --> Ok 1.5
 
     run (floatAttr "attr") "<root attr='value'></root>"
-    --> Err "Path: /\nNode: <root attr=\"value\"></root>\ncould not convert string 'value' to a Float"
+    --> Err "Node: <root attr=\"value\"></root>\ncould not convert string 'value' to a Float"
 
 -}
 floatAttr : String -> Decoder Float
@@ -509,7 +497,7 @@ floatAttr name_ =
     --> Ok True
 
     run (boolAttr "attr") "<root attr='value'></root>"
-    --> Err "Path: /\nNode: <root attr=\"value\"></root>\nNot a valid boolean value."
+    --> Err "Node: <root attr=\"value\"></root>\nNot a valid boolean value."
 
 -}
 boolAttr : String -> Decoder Bool
@@ -545,17 +533,17 @@ single decoder =
     ListDecoder (singleImpl decoder)
 
 
-singleImpl : Decoder a -> List Node -> Result Error a
-singleImpl (Decoder decoder) nodes =
+singleImpl : Decoder a -> ( List Node, Node ) -> Result Error a
+singleImpl (Decoder decoder) ( nodes, ancestor ) =
     case nodes of
         [] ->
-            Err <| SimpleError NodeNotFound
+            Err (Failure "Node not found." ancestor)
 
         [ singleton_ ] ->
             decoder singleton_
 
         _ :: _ ->
-            Err <| SimpleError Duplicate
+            Err (Failure "Multiple nodes found." ancestor)
 
 
 {-| Composes [`ListDecoder`](#ListDecoder) that results in a list of values.
@@ -574,8 +562,8 @@ list decoder =
     ListDecoder (listImpl decoder [])
 
 
-listImpl : Decoder a -> List a -> List Node -> Result Error (List a)
-listImpl (Decoder decoder) acc nodes =
+listImpl : Decoder a -> List a -> ( List Node, Node ) -> Result Error (List a)
+listImpl (Decoder decoder) acc ( nodes, ancestor ) =
     case nodes of
         [] ->
             Ok (List.reverse acc)
@@ -583,7 +571,7 @@ listImpl (Decoder decoder) acc nodes =
         n :: ns ->
             case decoder n of
                 Ok item ->
-                    listImpl (Decoder decoder) (item :: acc) ns
+                    listImpl (Decoder decoder) (item :: acc) ( ns, ancestor )
 
                 Err e ->
                     Err e
@@ -597,7 +585,7 @@ listImpl (Decoder decoder) acc nodes =
 -}
 leakyList : Decoder a -> ListDecoder (List a)
 leakyList (Decoder decoder) =
-    ListDecoder (List.foldr (decoder >> accumlateOk) (Ok []))
+    ListDecoder (Tuple.first >> List.foldr (decoder >> accumlateOk) (Ok []))
 
 
 accumlateOk : Result x a -> Result x (List a) -> Result x (List a)
@@ -618,14 +606,19 @@ accumlateOk result acc =
 -}
 succeed : a -> Decoder a
 succeed a =
-    Decoder (always <| Ok a)
+    Decoder (\_ -> Ok a)
 
 
 {-| Decoder that always fail with the given message.
 -}
 fail : String -> Decoder a
 fail message =
-    Decoder (always <| Err <| SimpleError <| Unparsable message)
+    Decoder (failImpl message)
+
+
+failImpl : String -> Node -> Result Error a
+failImpl message node =
+    Err (Failure message node)
 
 
 {-| Try a list of decoders.
@@ -636,7 +629,7 @@ Fails if all given decoders failed, or no decoders are given.
     --> Ok 0
 
     run (oneOf [ int ]) "<root>nonInt</root>"
-    --> Err "All decoders failed:\n 1) Path: /\n    Node: <root>nonInt</root>\n    could not convert string 'nonInt' to an Int"
+    --> Err "All decoders failed:\n 1) Node: <root>nonInt</root>\n    could not convert string 'nonInt' to an Int"
 
 -}
 oneOf : List (Decoder a) -> Decoder a
@@ -648,7 +641,7 @@ oneOfImpl : List (Decoder a) -> List Error -> Node -> Result Error a
 oneOfImpl decoders errors node =
     case decoders of
         [] ->
-            Err <| SimpleError <| OneOf (List.reverse errors)
+            Err (OneOf (List.reverse errors))
 
         (Decoder d) :: ds ->
             case d node of
@@ -907,8 +900,12 @@ path path_ listDecoder =
 
 
 pathImpl : List String -> ListDecoder a -> Node -> Result Error a
-pathImpl path_ listDecoder node =
-    node |> children |> query path_ |> decodeWithErrorContext path_ node listDecoder
+pathImpl path_ (ListDecoder listDecoder) node =
+    node
+        |> children
+        |> query path_ node
+        |> listDecoder
+        |> Result.mapError (concatPath path_)
 
 
 children : Node -> List Node
@@ -921,22 +918,30 @@ children node =
             []
 
 
-query : List String -> List Node -> List Node
-query path_ nodes =
+query : List String -> Node -> List Node -> ( List Node, Node )
+query path_ ancestor collected =
     case path_ of
         [] ->
-            nodes
+            ( collected, ancestor )
 
-        [ k ] ->
-            List.filter (hasName k) nodes
+        [ segment ] ->
+            -- This clause is necessary in order to keep "empty" node as is, like "<val></val>".
+            -- Without special care, such nodes are silently eliminated by `List.concatMap children`.
+            ( List.filter (hasName segment) collected, ancestor )
 
-        k :: ks ->
-            let
-                collectedChildren =
-                    nodes |> List.filter (hasName k) |> List.concatMap children
-            in
-            -- Enforce TCO; <https://github.com/elm/compiler/issues/1770>
-            query ks collectedChildren
+        segment :: ss ->
+            case List.filter (hasName segment) collected of
+                [] ->
+                    -- It is pointless to dig any deeper
+                    ( [], ancestor )
+
+                [ onlyOne ] ->
+                    -- This is the only node that produced path-matching element,
+                    -- effectively "narrowing down" pathfinding context for more consice error messages
+                    query ss onlyOne (children onlyOne)
+
+                many ->
+                    query ss ancestor (List.concatMap children many)
 
 
 hasName : String -> Node -> Bool
@@ -949,14 +954,14 @@ hasName name node =
             False
 
 
-decodeWithErrorContext : List String -> Node -> ListDecoder a -> List Node -> Result Error a
-decodeWithErrorContext path_ node (ListDecoder listDecoder) nodes =
-    case listDecoder nodes of
-        Ok ok ->
-            Ok ok
+concatPath : List String -> Error -> Error
+concatPath path_ error =
+    case error of
+        Path innerPath innerError ->
+            Path (path_ ++ innerPath) innerError
 
-        Err err ->
-            Err <| addPathAndNode path_ node err
+        otherwise ->
+            Path path_ otherwise
 
 
 
@@ -1039,16 +1044,6 @@ possiblePath path_ listDecoderA =
 -- ERROR UTILITY
 
 
-addPathAndNode : List String -> Node -> Error -> Error
-addPathAndNode path_ node error =
-    case error of
-        SimpleError r ->
-            DetailedError path_ node r
-
-        DetailedError innerPath innerNode r ->
-            DetailedError (path_ ++ innerPath) innerNode r
-
-
 {-| Convert [`Error`](#Error) to a formatted string.
 -}
 errorToString : Error -> String
@@ -1059,37 +1054,18 @@ errorToString error =
 errorToRows : Error -> List String
 errorToRows error =
     case error of
-        SimpleError problem ->
-            problemToString problem
-
-        DetailedError path_ node problem ->
-            [ "Path: /" ++ String.join "/" path_
-            , "Node: " ++ formatNode node
-            ]
-                ++ problemToString problem
-
-
-problemToString : Problem -> List String
-problemToString problem =
-    case problem of
-        NodeNotFound ->
-            [ "Node not found." ]
-
-        AttributeNotFound name ->
-            [ "Attribute '" ++ name ++ "' not found." ]
-
-        Duplicate ->
-            [ "Multiple nodes found." ]
-
-        Unparsable str ->
-            [ str ]
+        Path path_ innerError ->
+            ("Path: /" ++ String.join "/" path_) :: errorToRows innerError
 
         OneOf [] ->
             [ "No decoders available." ]
 
-        OneOf errors ->
+        OneOf innerErrors ->
             let
-                childRows outerIndex =
+                innerRows =
+                    innerErrors |> List.indexedMap genChildRows |> List.concat
+
+                genChildRows outerIndex =
                     errorToRows >> List.indexedMap (indentRow (outerIndex + 1))
 
                 indentRow outerIndex innerIndex row =
@@ -1099,6 +1075,9 @@ problemToString problem =
                     else
                         "    " ++ row
             in
-            [ "All decoders failed:"
+            "All decoders failed:" :: innerRows
+
+        Failure problem node ->
+            [ "Node: " ++ formatNode node
+            , problem
             ]
-                ++ (errors |> List.indexedMap childRows |> List.concat)
