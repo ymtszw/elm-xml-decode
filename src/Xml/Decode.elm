@@ -788,17 +788,11 @@ andMap =
 
 -}
 withDefault : a -> Decoder a -> Decoder a
-withDefault default (Decoder decoder) =
-    let
-        applyDefault result =
-            case result of
-                Ok _ ->
-                    result
-
-                Err _ ->
-                    Ok default
-    in
-    Decoder (decoder >> applyDefault)
+withDefault default decoder =
+    oneOf
+        [ decoder
+        , succeed default
+        ]
 
 
 {-| Generates a decoder that results in a `Maybe` value.
@@ -814,17 +808,11 @@ Otherwise (in cases of `Ok`,) it succeeds with `Just` value.
 
 -}
 maybe : Decoder a -> Decoder (Maybe a)
-maybe (Decoder decoder) =
-    let
-        maybify result =
-            case result of
-                Ok val ->
-                    Ok (Just val)
-
-                Err _ ->
-                    Ok Nothing
-    in
-    Decoder (decoder >> maybify)
+maybe decoder =
+    oneOf
+        [ map Just decoder
+        , succeed Nothing
+        ]
 
 
 {-| Generates a lazy decoder.
