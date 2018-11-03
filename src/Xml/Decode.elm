@@ -1080,4 +1080,6 @@ problemToString reason =
             "No decoders available."
 
         OneOf errors ->
-            String.join " " (List.map errorToString errors)
+            errors
+                |> List.indexedMap (\index e -> "(" ++ String.fromInt (index + 1) ++ ") " ++ errorToString e)
+                |> String.join " "

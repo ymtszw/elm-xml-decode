@@ -1,3 +1,9 @@
+# Next minor release
+
+## API changes
+
+* Added `oneOf`.
+
 # 2.0.0
 
 ## API changes
