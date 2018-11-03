@@ -903,15 +903,13 @@ Be careful not to accidentally include nodes from not-targeted ancestors.
 Note that in the path, you must "start" at the root scope.
 For instance, to work with an XML document like:
 
-<pre>
-&lt;Root&gt;
-    &lt;Path&gt;
-        &lt;Target&gt;
-            Value
-        &lt;/Target&gt;
-    &lt;/Path&gt;
-&lt;/Root&gt;
-</pre>
+    <Root>
+        <Path>
+            <Target>
+                Value
+            </Target>
+        </Path>
+    </Root>
 
 You should specify:
 
