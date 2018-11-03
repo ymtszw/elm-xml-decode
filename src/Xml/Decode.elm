@@ -4,7 +4,7 @@ module Xml.Decode exposing
     , string, int, float, bool
     , stringAttr, intAttr, floatAttr, boolAttr
     , single, list, leakyList
-    , succeed, fail, andThen, map, map2, map3, map4, map5, andMap, withDefault, maybe, lazy
+    , succeed, fail, oneOf, andThen, map, map2, map3, map4, map5, andMap, withDefault, maybe, lazy
     , path
     , requiredPath, optionalPath, possiblePath
     , errorToString
@@ -72,7 +72,7 @@ Examples in this package are doc-tested.
 
 `mapN` series are backed by `Result.mapN` series, thus it only supports up to `map5`.
 
-@docs succeed, fail, andThen, map, map2, map3, map4, map5, andMap, withDefault, maybe, lazy
+@docs succeed, fail, oneOf, andThen, map, map2, map3, map4, map5, andMap, withDefault, maybe, lazy
 
 
 # Node Locater
@@ -139,6 +139,7 @@ type Problem
     | AttributeNotFound String
     | Duplicate
     | Unparsable String
+    | OneOf (List Error)
 
 
 
@@ -294,7 +295,7 @@ If you want to extract values from node attribute, use [`stringAttr`](#stringAtt
     --> Ok ""
 
     run string "<root><nested>string</nested></root>"
-    --> Err "The node is not a simple text node. At: /, Node: <root><nested>string</nested></root>"
+    --> Err "Path: /\nNode: <root><nested>string</nested></root>\nThe node is not a simple text node."
 
 -}
 string : Decoder String
@@ -337,7 +338,7 @@ cdataImpl generator node =
     --> Ok 1
 
     run int "<root>value</root>"
-    --> Err "could not convert string 'value' to an Int At: /, Node: <root>value</root>"
+    --> Err "Path: /\nNode: <root>value</root>\ncould not convert string 'value' to an Int"
 
 -}
 int : Decoder Int
@@ -361,7 +362,7 @@ convertCdata toType typeStr raw =
     --> Ok 1.0
 
     run float "<root>value</root>"
-    --> Err "could not convert string 'value' to a Float At: /, Node: <root>value</root>"
+    --> Err "Path: /\nNode: <root>value</root>\ncould not convert string 'value' to a Float"
 
 -}
 float : Decoder Float
@@ -386,7 +387,7 @@ We follow this specification, case-sensitively.
     --> Ok True
 
     run bool "<root>value</root>"
-    --> Err "Not a valid boolean value. At: /, Node: <root>value</root>"
+    --> Err "Path: /\nNode: <root>value</root>\nNot a valid boolean value."
 
 -}
 bool : Decoder Bool
@@ -425,7 +426,7 @@ Fails if the node does not have specified attribute.
     --> Ok "value"
 
     run (stringAttr "attr") "<root></root>"
-    --> Err "Attribute 'attr' not found. At: /, Node: <root></root>"
+    --> Err "Path: /\nNode: <root></root>\nAttribute 'attr' not found."
 
 [xpn]: http://package.elm-lang.org/packages/jinjor/elm-xml-parser/latest/XmlParser#Node
 
@@ -480,7 +481,7 @@ fetchAttributeValue name_ attrs =
     --> Ok 1
 
     run (intAttr "attr") "<root attr='value'></root>"
-    --> Err "could not convert string 'value' to an Int At: /, Node: <root attr=\"value\"></root>"
+    --> Err "Path: /\nNode: <root attr=\"value\"></root>\ncould not convert string 'value' to an Int"
 
 -}
 intAttr : String -> Decoder Int
@@ -494,7 +495,7 @@ intAttr name_ =
     --> Ok 1.5
 
     run (floatAttr "attr") "<root attr='value'></root>"
-    --> Err "could not convert string 'value' to a Float At: /, Node: <root attr=\"value\"></root>"
+    --> Err "Path: /\nNode: <root attr=\"value\"></root>\ncould not convert string 'value' to a Float"
 
 -}
 floatAttr : String -> Decoder Float
@@ -508,7 +509,7 @@ floatAttr name_ =
     --> Ok True
 
     run (boolAttr "attr") "<root attr='value'></root>"
-    --> Err "Not a valid boolean value. At: /, Node: <root attr=\"value\"></root>"
+    --> Err "Path: /\nNode: <root attr=\"value\"></root>\nNot a valid boolean value."
 
 -}
 boolAttr : String -> Decoder Bool
@@ -533,10 +534,10 @@ Examples:
     --> Ok "string"
 
     run (path [ "tag" ] (single string)) "<root></root>"
-    --> Err "Node not found. At: /tag, Node: <root></root>"
+    --> Err "Path: /tag\nNode: <root></root>\nNode not found."
 
     run (path [ "tag" ] (single string)) "<root><tag>string1</tag><tag>string2</tag></root>"
-    --> Err "Multiple nodes found. At: /tag, Node: <root><tag>string1</tag><tag>string2</tag></root>"
+    --> Err "Path: /tag\nNode: <root><tag>string1</tag><tag>string2</tag></root>\nMultiple nodes found."
 
 -}
 single : Decoder a -> ListDecoder a
@@ -565,7 +566,7 @@ This [`ListDecoder`](#ListDecoder) fails if any incoming items cannot be decoded
     --> Ok [ "string1", "string2" ]
 
     run (path [ "tag" ] (list int)) "<root><tag>1</tag><tag>nonInt</tag></root>"
-    --> Err "could not convert string 'nonInt' to an Int At: /tag, Node: <tag>nonInt</tag>"
+    --> Err "Path: /tag\nNode: <tag>nonInt</tag>\ncould not convert string 'nonInt' to an Int"
 
 -}
 list : Decoder a -> ListDecoder (List a)
@@ -625,6 +626,37 @@ succeed a =
 fail : String -> Decoder a
 fail message =
     Decoder (always <| Err <| SimpleError <| Unparsable message)
+
+
+{-| Try a list of decoders.
+
+Fails if all given decoders failed, or no decoders are given.
+
+    run (oneOf [ int, succeed 0 ]) "<root>nonInt</root>"
+    --> Ok 0
+
+    run (oneOf [ int ]) "<root>nonInt</root>"
+    --> Err "All decoders failed:\n 1) Path: /\n    Node: <root>nonInt</root>\n    could not convert string 'nonInt' to an Int"
+
+-}
+oneOf : List (Decoder a) -> Decoder a
+oneOf decoders =
+    Decoder (oneOfImpl decoders [])
+
+
+oneOfImpl : List (Decoder a) -> List Error -> Node -> Result Error a
+oneOfImpl decoders errors node =
+    case decoders of
+        [] ->
+            Err <| SimpleError <| OneOf (List.reverse errors)
+
+        (Decoder d) :: ds ->
+            case d node of
+                Ok val ->
+                    Ok val
+
+                Err e ->
+                    oneOfImpl ds (e :: errors) node
 
 
 {-| Generates a decoder that depends on previous value.
@@ -759,17 +791,11 @@ andMap =
 
 -}
 withDefault : a -> Decoder a -> Decoder a
-withDefault default (Decoder decoder) =
-    let
-        applyDefault result =
-            case result of
-                Ok _ ->
-                    result
-
-                Err _ ->
-                    Ok default
-    in
-    Decoder (decoder >> applyDefault)
+withDefault default decoder =
+    oneOf
+        [ decoder
+        , succeed default
+        ]
 
 
 {-| Generates a decoder that results in a `Maybe` value.
@@ -785,17 +811,11 @@ Otherwise (in cases of `Ok`,) it succeeds with `Just` value.
 
 -}
 maybe : Decoder a -> Decoder (Maybe a)
-maybe (Decoder decoder) =
-    let
-        maybify result =
-            case result of
-                Ok val ->
-                    Ok (Just val)
-
-                Err _ ->
-                    Ok Nothing
-    in
-    Decoder (decoder >> maybify)
+maybe decoder =
+    oneOf
+        [ map Just decoder
+        , succeed Nothing
+        ]
 
 
 {-| Generates a lazy decoder.
@@ -878,7 +898,7 @@ Basic usages:
 Decoders will report errors with path at which error happened as well as nearest node:
 
     run (path [ "tag", "nested" ] (single int)) "<root><tag><nested>string1</nested></tag></root>"
-    --> Err "could not convert string 'string1' to an Int At: /tag/nested, Node: <nested>string1</nested>"
+    --> Err "Path: /tag/nested\nNode: <nested>string1</nested>\ncould not convert string 'string1' to an Int"
 
 -}
 path : List String -> ListDecoder a -> Decoder a
@@ -1033,27 +1053,52 @@ addPathAndNode path_ node error =
 -}
 errorToString : Error -> String
 errorToString error =
+    errorToRows error |> String.join "\n"
+
+
+errorToRows : Error -> List String
+errorToRows error =
     case error of
-        SimpleError r ->
-            problemToString r
+        SimpleError problem ->
+            problemToString problem
 
-        DetailedError path_ node r ->
-            problemToString r
-                ++ (" At: /" ++ String.join "/" path_)
-                ++ (", Node: " ++ formatNode node)
+        DetailedError path_ node problem ->
+            [ "Path: /" ++ String.join "/" path_
+            , "Node: " ++ formatNode node
+            ]
+                ++ problemToString problem
 
 
-problemToString : Problem -> String
-problemToString reason =
-    case reason of
+problemToString : Problem -> List String
+problemToString problem =
+    case problem of
         NodeNotFound ->
-            "Node not found."
+            [ "Node not found." ]
 
         AttributeNotFound name ->
-            "Attribute '" ++ name ++ "' not found."
+            [ "Attribute '" ++ name ++ "' not found." ]
 
         Duplicate ->
-            "Multiple nodes found."
+            [ "Multiple nodes found." ]
 
         Unparsable str ->
-            str
+            [ str ]
+
+        OneOf [] ->
+            [ "No decoders available." ]
+
+        OneOf errors ->
+            let
+                childRows outerIndex =
+                    errorToRows >> List.indexedMap (indentRow (outerIndex + 1))
+
+                indentRow outerIndex innerIndex row =
+                    if innerIndex == 0 then
+                        String.padLeft 2 ' ' (String.fromInt outerIndex) ++ ") " ++ row
+
+                    else
+                        "    " ++ row
+            in
+            [ "All decoders failed:"
+            ]
+                ++ (errors |> List.indexedMap childRows |> List.concat)

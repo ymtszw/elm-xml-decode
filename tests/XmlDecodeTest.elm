@@ -201,6 +201,108 @@ testMaybe decoder input expect =
                 |> Expect.equal (Ok expect)
 
 
+type IntOrBool
+    = I Int
+    | B Bool
+
+
+oneOfSuite : Test
+oneOfSuite =
+    describe "oneOf"
+        [ testOneOfOk "[ int ]" [ map I int ] "1" (I 1)
+        , testOneOfOk "[ bool ]" [ map B bool ] "1" (B True)
+        , testOneOfOk "[ int, bool ]" [ map I int, map B bool ] "1" (I 1)
+        , testOneOfOk "[ int, bool ]" [ map I int, map B bool ] "true" (B True)
+        , testOneOfOk "[ bool, int ]" [ map B bool, map I int ] "1" (B True)
+        , testOneOfOk "[ bool, int ]" [ map B bool, map I int ] "2" (I 2)
+        , testOneOfErr "[]" [] "1"
+        , testOneOfErr "[ int ]" [ map I int ] "true"
+        , testOneOfErr "[ bool ]" [ map B bool ] "2"
+        , testOneOfErr "[ int, bool ]" [ map I int, map B bool ] "nonInt,nonBool"
+        , testOneOfErr "[ bool, int ]" [ map B bool, map I int ] "nonInt,nonBool"
+        ]
+
+
+testOneOfOk : String -> List (Decoder IntOrBool) -> String -> IntOrBool -> Test
+testOneOfOk desc decoders input expect =
+    test ("should decode " ++ xml input ++ " into " ++ Debug.toString expect ++ " by " ++ desc) <|
+        \_ ->
+            run (oneOf decoders) (xml input) |> Expect.equal (Ok expect)
+
+
+testOneOfErr : String -> List (Decoder IntOrBool) -> String -> Test
+testOneOfErr desc decoders input =
+    test ("should fail to decode " ++ xml input ++ " by " ++ desc) <|
+        \_ ->
+            run (oneOf decoders) (xml input) |> Expect.err
+
+
+errorMessageSuite : Test
+errorMessageSuite =
+    describe "errorToString"
+        [ testErrorMessages (map I int)
+            "nonInt"
+            [ "Path: /"
+            , "Node: <root>nonInt</root>"
+            , "could not convert string 'nonInt' to an Int"
+            ]
+        , testErrorMessages (path [ "nested" ] (single (map I int)))
+            "<nested>nonInt</nested>"
+            [ "Path: /nested"
+            , "Node: <nested>nonInt</nested>"
+            , "could not convert string 'nonInt' to an Int"
+            ]
+        , testErrorMessages (path [ "nested", "nested" ] (single (map I int)))
+            "<nested><nested>nonInt</nested></nested>"
+            [ "Path: /nested/nested"
+            , "Node: <nested>nonInt</nested>"
+            , "could not convert string 'nonInt' to an Int"
+            ]
+        , testErrorMessages (path [ "nested" ] (single (map I int)))
+            "<nested>nonInt</nested><nested>nonInt</nested>"
+            [ "Path: /nested"
+            , "Node: <root><nested>nonInt</nested><nested>nonInt</nested></root>"
+            , "Multiple nodes found."
+            ]
+        , testErrorMessages (path [ "nested" ] (single (oneOf [ map I int, map B bool ])))
+            "<nested>nonInt,nonBool</nested>"
+            [ "Path: /nested"
+            , "Node: <root><nested>nonInt,nonBool</nested></root>"
+            , "All decoders failed:"
+            , " 1) Path: /"
+            , "    Node: <nested>nonInt,nonBool</nested>"
+            , "    could not convert string 'nonInt,nonBool' to an Int"
+            , " 2) Path: /"
+            , "    Node: <nested>nonInt,nonBool</nested>"
+            , "    Not a valid boolean value."
+            ]
+        , testErrorMessages (path [ "nested" ] (single (oneOf [ map I int, oneOf [ map B bool ] ])))
+            "<nested>nonInt,nonBool</nested>"
+            [ "Path: /nested"
+            , "Node: <root><nested>nonInt,nonBool</nested></root>"
+            , "All decoders failed:"
+            , " 1) Path: /"
+            , "    Node: <nested>nonInt,nonBool</nested>"
+            , "    could not convert string 'nonInt,nonBool' to an Int"
+            , " 2) All decoders failed:"
+            , "     1) Path: /"
+            , "        Node: <nested>nonInt,nonBool</nested>"
+            , "        Not a valid boolean value."
+            ]
+        ]
+
+
+testErrorMessages : Decoder IntOrBool -> String -> List String -> Test
+testErrorMessages decoder input expectedRows =
+    let
+        expect =
+            String.join "\n" expectedRows
+    in
+    test ("should produce error message:\n" ++ expect) <|
+        \_ ->
+            run decoder (xml input) |> Expect.equal (Err expect)
+
+
 suite : Test
 suite =
     describe "Xml.Decode"
@@ -211,4 +313,6 @@ suite =
         , pathSuite
         , withDefaultSuite
         , maybeSuite
+        , oneOfSuite
+        , errorMessageSuite
         ]

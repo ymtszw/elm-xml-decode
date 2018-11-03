@@ -24,7 +24,7 @@ suite =
                     in
                     exampleXml
                         |> run (path [ "ListItem" ] (list listItemDecoder))
-                        |> Expect.equal (Err "Attribute 'id' not found. At: /ListItem, Node: <value>a</value>")
+                        |> Expect.equal (Err "Path: /ListItem\nNode: <value>a</value>\nAttribute 'id' not found.")
             , test "fixed decoder" <|
                 \_ ->
                     let

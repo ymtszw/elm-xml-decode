@@ -1,3 +1,13 @@
+# Next minor release
+
+## API changes
+
+* Added `oneOf`.
+
+## Behavior changes
+
+* Improved error messages. Now they have newlines with indented structure.
+
 # 2.0.0
 
 ## API changes
