@@ -4,7 +4,7 @@ module Xml.Decode exposing
     , string, int, float, bool
     , stringAttr, intAttr, floatAttr, boolAttr
     , single, list, leakyList
-    , succeed, fail, andThen, map, map2, map3, map4, map5, andMap, withDefault, maybe, lazy
+    , succeed, fail, oneOf, andThen, map, map2, map3, map4, map5, andMap, withDefault, maybe, lazy
     , path
     , requiredPath, optionalPath, possiblePath
     , errorToString
@@ -72,7 +72,7 @@ Examples in this package are doc-tested.
 
 `mapN` series are backed by `Result.mapN` series, thus it only supports up to `map5`.
 
-@docs succeed, fail, andThen, map, map2, map3, map4, map5, andMap, withDefault, maybe, lazy
+@docs succeed, fail, oneOf, andThen, map, map2, map3, map4, map5, andMap, withDefault, maybe, lazy
 
 
 # Node Locater
@@ -139,6 +139,7 @@ type Problem
     | AttributeNotFound String
     | Duplicate
     | Unparsable String
+    | OneOf (List Error)
 
 
 
@@ -627,6 +628,34 @@ fail message =
     Decoder (always <| Err <| SimpleError <| Unparsable message)
 
 
+{-| Try a list of decoders.
+
+Fails if all given decoders failed, or no decoders are given.
+
+    run (oneOf [ int, succeed 0 ]) "<root>nonInt</root>"
+    --> Ok 0
+
+-}
+oneOf : List (Decoder a) -> Decoder a
+oneOf decoders =
+    Decoder (oneOfImpl decoders [])
+
+
+oneOfImpl : List (Decoder a) -> List Error -> Node -> Result Error a
+oneOfImpl decoders errors node =
+    case decoders of
+        [] ->
+            Err <| SimpleError <| OneOf errors
+
+        (Decoder d) :: ds ->
+            case d node of
+                Ok val ->
+                    Ok val
+
+                Err e ->
+                    oneOfImpl ds (e :: errors) node
+
+
 {-| Generates a decoder that depends on previous value.
 -}
 andThen : (a -> Decoder b) -> Decoder a -> Decoder b
@@ -1033,6 +1062,7 @@ addPathAndNode path_ node error =
 -}
 errorToString : Error -> String
 errorToString error =
+    -- XXX Could use more effort
     case error of
         SimpleError r ->
             problemToString r
@@ -1057,3 +1087,9 @@ problemToString reason =
 
         Unparsable str ->
             str
+
+        OneOf [] ->
+            "No decoders available."
+
+        OneOf errors ->
+            String.join " " (List.map errorToString errors)
