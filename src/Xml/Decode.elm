@@ -604,6 +604,9 @@ Useful for "narrowing down" your saerch paths.
 
 Fails if there are not enough nodes.
 
+    run (path [ "tag" ] (index 1 int)) "<root><tag>0</tag><tag>1</tag></root>"
+    --> Ok 1
+
 -}
 index : Int -> Decoder a -> ListDecoder a
 index index_ decoder =
