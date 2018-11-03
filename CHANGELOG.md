@@ -2,8 +2,8 @@
 
 ## API changes
 
-* Added `oneOf`.
-* Re-define `Error` structure, aligned with with `Json.Decode.Error`.
+* Added `oneOf`, `index`.
+* Re-defined `Error` structure to fit `OneOf`. Also it is aligned with `Json.Decode.Error` now.
 
 ## Behavior changes
 
