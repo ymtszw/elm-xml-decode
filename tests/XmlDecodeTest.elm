@@ -237,6 +237,72 @@ testOneOfErr desc decoders input =
             run (oneOf decoders) (xml input) |> Expect.err
 
 
+errorMessageSuite : Test
+errorMessageSuite =
+    describe "errorToString"
+        [ testErrorMessages (map I int)
+            "nonInt"
+            [ "Path: /"
+            , "Node: <root>nonInt</root>"
+            , "could not convert string 'nonInt' to an Int"
+            ]
+        , testErrorMessages (path [ "nested" ] (single (map I int)))
+            "<nested>nonInt</nested>"
+            [ "Path: /nested"
+            , "Node: <nested>nonInt</nested>"
+            , "could not convert string 'nonInt' to an Int"
+            ]
+        , testErrorMessages (path [ "nested", "nested" ] (single (map I int)))
+            "<nested><nested>nonInt</nested></nested>"
+            [ "Path: /nested/nested"
+            , "Node: <nested>nonInt</nested>"
+            , "could not convert string 'nonInt' to an Int"
+            ]
+        , testErrorMessages (path [ "nested" ] (single (map I int)))
+            "<nested>nonInt</nested><nested>nonInt</nested>"
+            [ "Path: /nested"
+            , "Node: <root><nested>nonInt</nested><nested>nonInt</nested></root>"
+            , "Multiple nodes found."
+            ]
+        , testErrorMessages (path [ "nested" ] (single (oneOf [ map I int, map B bool ])))
+            "<nested>nonInt,nonBool</nested>"
+            [ "Path: /nested"
+            , "Node: <root><nested>nonInt,nonBool</nested></root>"
+            , "All decoders failed:"
+            , " 1) Path: /"
+            , "    Node: <nested>nonInt,nonBool</nested>"
+            , "    could not convert string 'nonInt,nonBool' to an Int"
+            , " 2) Path: /"
+            , "    Node: <nested>nonInt,nonBool</nested>"
+            , "    Not a valid boolean value."
+            ]
+        , testErrorMessages (path [ "nested" ] (single (oneOf [ map I int, oneOf [ map B bool ] ])))
+            "<nested>nonInt,nonBool</nested>"
+            [ "Path: /nested"
+            , "Node: <root><nested>nonInt,nonBool</nested></root>"
+            , "All decoders failed:"
+            , " 1) Path: /"
+            , "    Node: <nested>nonInt,nonBool</nested>"
+            , "    could not convert string 'nonInt,nonBool' to an Int"
+            , " 2) All decoders failed:"
+            , "     1) Path: /"
+            , "        Node: <nested>nonInt,nonBool</nested>"
+            , "        Not a valid boolean value."
+            ]
+        ]
+
+
+testErrorMessages : Decoder IntOrBool -> String -> List String -> Test
+testErrorMessages decoder input expectedRows =
+    let
+        expect =
+            String.join "\n" expectedRows
+    in
+    test ("should produce error message:\n" ++ expect) <|
+        \_ ->
+            run decoder (xml input) |> Expect.equal (Err expect)
+
+
 suite : Test
 suite =
     describe "Xml.Decode"
@@ -248,4 +314,5 @@ suite =
         , withDefaultSuite
         , maybeSuite
         , oneOfSuite
+        , errorMessageSuite
         ]
