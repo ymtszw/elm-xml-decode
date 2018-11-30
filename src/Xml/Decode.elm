@@ -112,7 +112,7 @@ type Decoder a
 
 {-| A function that knows how to decode list of XML nodes into Elm value.
 
-They are constructed by functions such ad [`single`](#single) or [`list`](#list),
+They are constructed by functions such as [`single`](#single) or [`list`](#list),
 then used in conjunction with [`path`](#path).
 
 See [`path`](#path) for examples.
