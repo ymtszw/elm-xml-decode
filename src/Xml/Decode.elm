@@ -4,7 +4,7 @@ module Xml.Decode exposing
     , string, int, float, bool
     , stringAttr, intAttr, floatAttr, boolAttr
     , single, list, leakyList, index
-    , succeed, fail, oneOf, andThen, map, map2, map3, map4, map5, andMap, withDefault, maybe, lazy
+    , succeed, fail, oneOf, andThen, with, map, map2, map3, map4, map5, andMap, withDefault, maybe, lazy
     , path
     , requiredPath, optionalPath, possiblePath
     , errorToString
@@ -72,7 +72,7 @@ Examples in this package are doc-tested.
 
 `mapN` series are backed by `Result.mapN` series, thus it only supports up to `map5`.
 
-@docs succeed, fail, oneOf, andThen, map, map2, map3, map4, map5, andMap, withDefault, maybe, lazy
+@docs succeed, fail, oneOf, andThen, with, map, map2, map3, map4, map5, andMap, withDefault, maybe, lazy
 
 
 # Node Locater
@@ -708,6 +708,40 @@ andThenImpl decoderBGen (Decoder decoderA) node =
 
         Err e ->
             Err e
+
+
+{-| Flipped `andThen`.
+
+Why do we want this? It allows us to write decoders in Cotinuation-Passing Style (CPS)!
+
+    run
+        (
+            with (path ["string"] (single string)) <| \s ->
+            with (path ["int"] (single int)) <| \i ->
+            succeed ( s, i )
+        )
+        "<root><string>string</string><int>1</int></root>"
+    --> Ok ("string", 1)
+
+This style is being discussed in Elm community, and sometimes it makes sense to adopt one,
+especially when you are trying to decode complex data.
+
+<https://discourse.elm-lang.org/t/experimental-json-decoding-api/2121>
+
+  - Although more verbose, it is explicit so you won't lost track of which decoder generates which value
+  - It does not depends on `mapN` family, so you can easily add/remove fields (similar pros to pipeline style)
+  - You can always use previously decoded values, so it is easy to construct value-dependent decoders.
+    E.g. Data such that part of its decoder changes depends on values of `<type>` tag
+
+This style is not yet formatted nicely by `elm-format` as of writing this,
+but the proposal is already filed!
+
+<https://github.com/avh4/elm-format/issues/568>
+
+-}
+with : Decoder a -> (a -> Decoder b) -> Decoder b
+with d cont =
+    andThen cont d
 
 
 {-| Transform a decoder.
