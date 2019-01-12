@@ -4,28 +4,28 @@
 
 [cc]: https://circleci.com/gh/ymtszw/elm-xml-decode/tree/master.svg?style=svg
 
-XML decoder, sharing the spirit of [`Json.Decode`][jd].
+XML decoder, sharing the spirit of [`Json.Decode`][jd]. Ready for Elm 0.19.
 
-Using [jinjor/elm-xml-parser][exp] as its parser component.
+Using [jinjor/elm-xml-parser][exp] as its parser component, which is based on [elm/parser][ep].
 
-[jd]: http://package.elm-lang.org/packages/elm-lang/core/latest/Json-Decode
-[exp]: http://package.elm-lang.org/packages/jinjor/elm-xml-parser/latest
+[jd]: https://github.com/elm/json
+[exp]: http://github.com/jinjor/elm-xml-parser
+[ep]: https://github.com/elm/parser
 
 ## Related Works
 
-[eeue56/elm-xml][ex] is an existing full-package XML parser/decoder for Elm,
-though I intend to provide an alternative XML decoder which exhibits following properties:
+[eeue56/elm-xml][ex] was an existing full-package XML parser/decoder for Elm,
+though I intended to provide an alternative XML decoder which exhibits following properties:
 
 - Provides [`Decoder`][de]-based APIs, sharing the spirit of [`Json.Decode`][jd]
 - Also provides DSL-styled decoder compositions, sharing the sprits of [`Json.Decode.Pipeline`][jdp]
 - Handles list of XML node with identical tags, using [`ListDecoder`][ld] type
 - Locates targeting XML nodes using "path" of tags, partially mimicking XPath
 
-[ex]: http://package.elm-lang.org/packages/eeue56/elm-xml/latest
-[de]: http://package.elm-lang.org/packages/ymtszw/elm-xml-decode/latest/Xml-Decode#Decoder
-[jdp]: http://package.elm-lang.org/packages/NoRedInk/elm-decode-pipeline/latest/Json-Decode-Pipeline
-[ld]: http://package.elm-lang.org/packages/ymtszw/elm-xml-decode/latest/Xml-Decode#ListDecoder
-
+[ex]: https://github.com/eeue56/elm-xml
+[de]: https://package.elm-lang.org/packages/ymtszw/elm-xml-decode/latest/Xml-Decode#Decoder
+[jdp]: https://package.elm-lang.org/packages/NoRedInk/elm-decode-pipeline/latest/Json-Decode-Pipeline
+[ld]: https://package.elm-lang.org/packages/ymtszw/elm-xml-decode/latest/Xml-Decode#ListDecoder
 
 ## Examples
 
@@ -89,18 +89,33 @@ $ elm-verify-examples --elm-test=elm-test # Explicitly set elm-test to use, if p
 
 ## Benchmark: Are they efficient? Are they fast?
 
-(**Not yet updated for Elm 0.19**)
-
 Benchmark codes can be found in `benchmarks/` directory.
+Using [examples in W3School](https://www.w3schools.com/xml/xml_examples.asp).
+
+```sh
+$ elm make Benchmarks.elm --optimize --output=../docs/index.html
+```
+
+Looking forward to see similar benchmarks from other related works!!
+
+### In Elm 0.19
+
+Using [elm-explorations/benchmark](https://github.com/elm-explorations/benchmark).
+Available [here](https://ymtszw.github.io/elm-xml-decode/) as a static web page.
+
+**It may hang for a while** during JIT warming up, but keep waiting (~ a minute).
+
+Sample result (on my desktop PC):
+
+- CPU: Core i7 8700K 3.7GHz
+- Mem: DDR4 32GB
+- Google Chrome 71.0.3578.98 64bit
+
+![bench 3.0](https://raw.githubusercontent.com/ymtszw/elm-xml-decode/master/benchmarks/result3.0.png)
 
 ### In Elm 0.18 (elm-xml-decode 1.x)
 
-Using [BrianHicks/elm-benchmark][eb] and [examples in W3School][w3s].
-Available [here][bench] as a static web page.
-
-[eb]: http://package.elm-lang.org/packages/BrianHicks/elm-benchmark/latest/Benchmark
-[bench]: https://ymtszw.github.io/elm-xml-decode/
-[w3s]: https://www.w3schools.com/xml/xml_examples.asp
+Using [BrianHicks/elm-benchmark](https://github.com/BrianHicks/elm-benchmark).
 
 Sample result (on my MacBookPro early 2015):
 
@@ -108,17 +123,7 @@ Sample result (on my MacBookPro early 2015):
 - Mem: DDR3 8GB 1867MHz
 - Google Chrome 63.0.3239.84 64bit
 
-![bench](./benchmark.png)
-
-[jinjor/elm-xml-parser][exp] was using [elm-tools/parser][etp],
-which suffered from some performance issues at that time (possibly related to [this comment][issue]?).
-
-[etp]: http://package.elm-lang.org/packages/elm-tools/parser/latest
-[issue]: https://github.com/elm-tools/parser/issues/15#issuecomment-336223879
-
-Although decoding part should practically be fast enough (see decode result of note.xml and cd_catalog.xml).
-
-Looking forward to see similar benchmarks from other related works!!
+![bench 1.0](https://raw.githubusercontent.com/ymtszw/elm-xml-decode/master/benchmarks/result1.0.png)
 
 ## License
 
