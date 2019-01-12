@@ -109,6 +109,7 @@ Sample result (on my desktop PC):
 
 - CPU: Core i7 8700K 3.7GHz
 - Mem: DDR4 32GB
+- Windows 10 (2019/01/13)
 - Google Chrome 71.0.3578.98 64bit
 
 ![bench 3.0](https://raw.githubusercontent.com/ymtszw/elm-xml-decode/master/benchmarks/result3.0.png)
@@ -121,6 +122,7 @@ Sample result (on my MacBookPro early 2015):
 
 - CPU: Core i5 2.7GHz
 - Mem: DDR3 8GB 1867MHz
+- macOS (was El Capitan era, IIRC)
 - Google Chrome 63.0.3239.84 64bit
 
 ![bench 1.0](https://raw.githubusercontent.com/ymtszw/elm-xml-decode/master/benchmarks/result1.0.png)
