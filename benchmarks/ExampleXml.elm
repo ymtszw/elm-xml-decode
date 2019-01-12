@@ -13,23 +13,21 @@ justRoot =
 -}
 note : String
 note =
-    """
-<?xml version="1.0" encoding="UTF-8"?>
+    """<?xml version="1.0" encoding="UTF-8"?>
 <note>
   <to>Tove</to>
   <from>Jani</from>
   <heading>Reminder</heading>
   <body>Don't forget me this weekend!</body>
 </note>
-    """
+"""
 
 
-{-| Taken from [https://www.w3schools.com/xml/cd\_catalog.xml](https://www.w3schools.com/xml/cd_catalog.xml)
+{-| Taken from <https://www.w3schools.com/xml/cd_catalog.xml>
 -}
 cdCatalog : String
 cdCatalog =
-    """
-<?xml version="1.0" encoding="UTF-8"?>
+    """<?xml version="1.0" encoding="UTF-8"?>
 <CATALOG>
   <CD>
     <TITLE>Empire Burlesque</TITLE>
@@ -240,4 +238,4 @@ cdCatalog =
     <YEAR>1987</YEAR>
   </CD>
 </CATALOG>
-    """
+"""

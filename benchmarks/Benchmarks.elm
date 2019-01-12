@@ -3,45 +3,43 @@ module Benchmarks exposing (main)
 import Benchmark exposing (Benchmark, benchmark, describe)
 import Benchmark.Runner exposing (BenchmarkProgram, program)
 import ExampleXml
-import Xml.Decode as XD
-import Xml.Decode.Extra exposing ((|:))
-import Xml.Decode.Internal as Internal
+import Xml.Decode exposing (..)
 import XmlParser
 
 
 suite : Benchmark
 suite =
-    describe "Components of elm-xml-decode"
-        [ describe "Parsing minimal XML"
-            [ benchmark "elm-xml-parser (using elm-tools/parser)" <|
-                \_ -> XmlParser.parse ExampleXml.justRoot
+    describe "Xml.Decode"
+        [ describe "decodeString"
+            [ benchmark "note" <|
+                \_ -> decodeString noteDecoder ExampleXml.note
+            , benchmark "cdCatalog" <|
+                \_ -> decodeString cdCatalogDecoder ExampleXml.cdCatalog
             ]
-        , Benchmark.compare "Escape CDATA for error dump"
-            "escape (char-based)"
-            (\_ -> Internal.escape escapableString)
-            "escapeR (regex-based)"
-            (\_ -> Internal.escapeR escapableString)
-        , describe "Decode actual XmlParser.Xml"
-            [ benchmark "decode note.xml (small)" <|
-                \_ -> XD.decodeXml noteDecoder noteXml
-            , benchmark "decode cd_catalog.xml (large)" <|
-                \_ -> XD.decodeXml (XD.path [ "CD" ] (XD.list cdCatalogDecoder)) cdCatalogXml
+        , describe "decodeXml"
+            [ benchmark "note" <|
+                \_ -> decodeXml noteDecoder noteXml
+            , benchmark "cdCatalog" <|
+                \_ -> decodeXml cdCatalogDecoder cdCatalogXml
             ]
         ]
 
 
-escapableString : String
-escapableString =
-    " '<ab&cd>' "
+type alias Note =
+    { to : String
+    , from : String
+    , heading : String
+    , body : String
+    }
 
 
-noteDecoder : XD.Decoder ( String, String, String, String )
+noteDecoder : Decoder Note
 noteDecoder =
-    XD.succeed (\a b c d -> ( a, b, c, d ))
-        |: XD.path [ "to" ] (XD.single XD.string)
-        |: XD.path [ "from" ] (XD.single XD.string)
-        |: XD.path [ "heading" ] (XD.single XD.string)
-        |: XD.path [ "body" ] (XD.single XD.string)
+    map4 Note
+        (path [ "to" ] (single string))
+        (path [ "from" ] (single string))
+        (path [ "heading" ] (single string))
+        (path [ "body" ] (single string))
 
 
 noteXml : XmlParser.Xml
@@ -50,18 +48,28 @@ noteXml =
 
 
 type alias CD =
-    ( String, String, String, String, Float, Int )
+    { title : String
+    , artist : String
+    , country : String
+    , company : String
+    , price : Float
+    , year : Int
+    }
 
 
-cdCatalogDecoder : XD.Decoder CD
+cdCatalogDecoder : Decoder (List CD)
 cdCatalogDecoder =
-    XD.succeed (\a b c d e f -> ( a, b, c, d, e, f ))
-        |: XD.path [ "TITLE" ] (XD.single XD.string)
-        |: XD.path [ "ARTIST" ] (XD.single XD.string)
-        |: XD.path [ "COUNTRY" ] (XD.single XD.string)
-        |: XD.path [ "COMPANY" ] (XD.single XD.string)
-        |: XD.path [ "PRICE" ] (XD.single XD.float)
-        |: XD.path [ "YEAR" ] (XD.single XD.int)
+    let
+        cdDecoder =
+            succeed CD
+                |> andMap (path [ "TITLE" ] (single string))
+                |> andMap (path [ "ARTIST" ] (single string))
+                |> andMap (path [ "COUNTRY" ] (single string))
+                |> andMap (path [ "COMPANY" ] (single string))
+                |> andMap (path [ "PRICE" ] (single float))
+                |> andMap (path [ "YEAR" ] (single int))
+    in
+    path [ "CD" ] (list cdDecoder)
 
 
 cdCatalogXml : XmlParser.Xml
@@ -76,7 +84,8 @@ parse xmlStr =
             xml
 
         Err _ ->
-            Debug.crash "Should not happen"
+            -- Should not happen
+            parse xmlStr
 
 
 main : BenchmarkProgram
