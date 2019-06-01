@@ -1104,7 +1104,7 @@ optionalPath path_ listDecoderA default =
     run maybeDecoder "<root></root>"
     --> Ok Nothing
 
-If you want to apply default value when the node is missing, use [`optionalWith`](#optionalWith).
+If you want to apply default value when the node is missing, use [`optionalPath`](#optionalPath).
 
 -}
 possiblePath : List String -> ListDecoder a -> Decoder (Maybe a -> b) -> Decoder b
