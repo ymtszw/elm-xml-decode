@@ -597,7 +597,7 @@ listImpl (Decoder decoder) acc ( nodes, ancestor ) =
 
 {-| Variation of [`list`](#list), which ignores items that cannot be decoded.
 
-    run (path [ "tag" ] (leakyList int)) "<root><tag>1</tag><tag>nonINt</tag></root>"
+    run (path [ "tag" ] (leakyList int)) "<root><tag>1</tag><tag>nonInt</tag></root>"
     --> Ok [ 1 ]
 
 -}
@@ -618,7 +618,7 @@ accumlateOk result acc =
 
 {-| Similar to `Json.Decode.index`, decode from list of nodes at some index.
 
-Useful for "narrowing down" your saerch paths.
+Useful for "narrowing down" your search paths.
 
 Fails if there are not enough nodes.
 
