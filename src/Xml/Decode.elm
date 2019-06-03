@@ -948,7 +948,7 @@ In the above example, [`single`](#single) and [`list`](#list) are [`ListDecoder`
 
 It collects ALL nodes matching the path in breadth-first manner.
 If you need to collect nodes only from a specific intermediate node that fulfills some conditions,
-(e.g. `path [ "a", "b" ]`, but only in 3rd "<a>...</a>")
+(e.g. `path [ "a", "b" ]`, but only in 3rd `"<a>...</a>"`)
 you need to split the path and explicitly define a Decoder that narrows down the path.
 Be careful not to accidentally include nodes from not-targeted ancestors.
 
