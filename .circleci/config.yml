@@ -24,6 +24,8 @@ workflows:
     jobs:
       - test
   nightly:
+    jobs:
+      - test
     triggers:
       - schedule:
           cron: "0 0 * * *"
