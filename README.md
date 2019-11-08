@@ -82,9 +82,8 @@ Globally install Elm Platform, [`elm-test`](https://github.com/rtfeldman/node-te
 and [`elm-verify-examples`](https://github.com/stoeffel/elm-verify-examples)
 
 ```sh
-$ elm-test
 $ elm-verify-examples
-$ elm-verify-examples --elm-test=elm-test # Explicitly set elm-test to use, if particular elm-test version has some issues
+$ elm-test
 ```
 
 ## Benchmark: Are they efficient? Are they fast?
