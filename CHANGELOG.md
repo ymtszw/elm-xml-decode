@@ -1,3 +1,9 @@
+# 3.2.0
+
+## API changes
+
+- Added `node` for customized decoding. Thanks [@marmutro](https://github.com/marmutro)!
+
 # 3.1.0
 
 ## API changes

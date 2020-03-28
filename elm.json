@@ -3,7 +3,7 @@
     "name": "ymtszw/elm-xml-decode",
     "summary": "Xml decoder sharing the spirit of Json.Decode",
     "license": "BSD-3-Clause",
-    "version": "3.1.0",
+    "version": "3.2.0",
     "exposed-modules": [
         "Xml.Decode"
     ],
