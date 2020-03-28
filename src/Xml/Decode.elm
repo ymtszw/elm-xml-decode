@@ -407,6 +407,7 @@ toBool str =
 See [`XmlParser`][xp] to further decompose the node.
 
 [xpn]: http://package.elm-lang.org/packages/jinjor/elm-xml-parser/latest/XmlParser#Node
+[xp]: http://package.elm-lang.org/packages/jinjor/elm-xml-parser/latest/XmlParser
 
     import XmlParser exposing (Node(..))
 
