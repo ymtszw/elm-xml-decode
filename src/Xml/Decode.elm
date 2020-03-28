@@ -408,6 +408,8 @@ See [`XmlParser`][xp] to further decompose the node.
 
 [xpn]: http://package.elm-lang.org/packages/jinjor/elm-xml-parser/latest/XmlParser#Node
 
+    import XmlParser exposing (Node(..))
+
     run (path ["path", "to", "target"] (list node)) """<root><path><to><target><child></child><child></child></target><target></target></to></path></root>"""
     --> Ok [Element "target" [] [Element "child" [] [],Element "child" [] []],Element "target" [] []]
 
