@@ -1,7 +1,7 @@
 module Xml.Decode exposing
     ( Decoder, ListDecoder, Error(..)
     , run, decodeString, decodeXml
-    , string, int, float, bool
+    , string, int, float, bool, node
     , stringAttr, intAttr, floatAttr, boolAttr
     , single, list, leakyList, index
     , succeed, fail, oneOf, andThen, with, map, map2, map3, map4, map5, andMap, withDefault, maybe, lazy
@@ -55,7 +55,7 @@ Examples in this package are doc-tested.
 
 # Decoders
 
-@docs string, int, float, bool
+@docs string, int, float, bool, node
 
 
 # Attribute Decoders
@@ -297,15 +297,15 @@ cdata generator =
 
 
 cdataImpl : (String -> Result String a) -> Node -> Result Error a
-cdataImpl generator node =
+cdataImpl generator aNode =
     let
         unparsable message =
-            Failure message node
+            Failure message aNode
 
         gen =
             generator >> Result.mapError unparsable
     in
-    case node of
+    case aNode of
         Text str ->
             gen str
 
@@ -402,6 +402,24 @@ toBool str =
             Err "Not a valid boolean value."
 
 
+{-| Decodes an [`XmlParser.Node`][xpn] into itself.
+
+See [`XmlParser`][xp] to further decompose the node.
+
+[xpn]: http://package.elm-lang.org/packages/jinjor/elm-xml-parser/latest/XmlParser#Node
+
+    run (path ["path", "to", "target"] (list node)) """<root><path><to><target><child></child><child></child></target><target></target></to></path></root>"""
+    --> Ok [Element "target" [] [Element "child" [] [],Element "child" [] []],Element "target" [] []]
+
+    run (path ["path", "to", "target"] (single node)) """<root><path><to><target><child></child><child></child></target><target></target></to></path></root>"""
+    --> Err ("Path: /path/to/target\nNode: <to><target><child></child><child></child></target><target></target></to>\nMultiple nodes found.")
+
+-}
+node : Decoder Node
+node =
+    Decoder Ok
+
+
 
 -- ATTRIBUTE DECODERS
 
@@ -430,15 +448,15 @@ cdataAttr name_ generator =
 
 
 cdataAttrImpl : String -> (String -> Result String a) -> Node -> Result Error a
-cdataAttrImpl name_ generator node =
+cdataAttrImpl name_ generator aNode =
     let
         notFound =
-            Failure ("Attribute '" ++ name_ ++ "' not found.") node
+            Failure ("Attribute '" ++ name_ ++ "' not found.") aNode
 
         gen =
-            generator >> Result.mapError (\message -> Failure message node)
+            generator >> Result.mapError (\message -> Failure message aNode)
     in
-    case node of
+    case aNode of
         Text _ ->
             Err notFound
 
@@ -627,9 +645,9 @@ indexImpl found index_ (Decoder dec) ( nodes, ancestor ) =
                     )
                     ancestor
 
-        node :: ns ->
+        aNode :: ns ->
             if found == index_ then
-                dec node
+                dec aNode
 
             else
                 indexImpl (found + 1) index_ (Decoder dec) ( ns, ancestor )
@@ -654,8 +672,8 @@ fail message =
 
 
 failImpl : String -> Node -> Result Error a
-failImpl message node =
-    Err (Failure message node)
+failImpl message aNode =
+    Err (Failure message aNode)
 
 
 {-| Try a list of decoders.
@@ -675,18 +693,18 @@ oneOf decoders =
 
 
 oneOfImpl : List (Decoder a) -> List Error -> Node -> Result Error a
-oneOfImpl decoders errors node =
+oneOfImpl decoders errors aNode =
     case decoders of
         [] ->
             Err (OneOf (List.reverse errors))
 
         (Decoder d) :: ds ->
-            case d node of
+            case d aNode of
                 Ok val ->
                     Ok val
 
                 Err e ->
-                    oneOfImpl ds (e :: errors) node
+                    oneOfImpl ds (e :: errors) aNode
 
 
 {-| Generates a decoder that depends on previous value.
@@ -697,14 +715,14 @@ andThen decoderBGen decoderA =
 
 
 andThenImpl : (a -> Decoder b) -> Decoder a -> Node -> Result Error b
-andThenImpl decoderBGen (Decoder decoderA) node =
-    case decoderA node of
+andThenImpl decoderBGen (Decoder decoderA) aNode =
+    case decoderA aNode of
         Ok valA ->
             let
                 (Decoder decoderB) =
                     decoderBGen valA
             in
-            decoderB node
+            decoderB aNode
 
         Err e ->
             Err e
@@ -756,8 +774,8 @@ map valueGen decoder =
 
 
 mapImpl : (a -> value) -> Decoder a -> Node -> Result Error value
-mapImpl valueGen (Decoder decoder) node =
-    node |> decoder |> Result.map valueGen
+mapImpl valueGen (Decoder decoder) aNode =
+    aNode |> decoder |> Result.map valueGen
 
 
 {-| Generates a decoder that combines results from two decoders.
@@ -775,8 +793,8 @@ map2 valueGen decoderA decoderB =
 
 
 map2Impl : (a -> b -> value) -> Decoder a -> Decoder b -> Node -> Result Error value
-map2Impl valueGen (Decoder decoderA) (Decoder decoderB) node =
-    Result.map2 valueGen (decoderA node) (decoderB node)
+map2Impl valueGen (Decoder decoderA) (Decoder decoderB) aNode =
+    Result.map2 valueGen (decoderA aNode) (decoderB aNode)
 
 
 {-| -}
@@ -786,8 +804,8 @@ map3 toVal dA dB dC =
 
 
 map3Impl : (a -> b -> c -> value) -> Decoder a -> Decoder b -> Decoder c -> Node -> Result Error value
-map3Impl toVal (Decoder dA) (Decoder dB) (Decoder dC) node =
-    Result.map3 toVal (dA node) (dB node) (dC node)
+map3Impl toVal (Decoder dA) (Decoder dB) (Decoder dC) aNode =
+    Result.map3 toVal (dA aNode) (dB aNode) (dC aNode)
 
 
 {-| -}
@@ -797,8 +815,8 @@ map4 toVal dA dB dC dD =
 
 
 map4Impl : (a -> b -> c -> d -> value) -> Decoder a -> Decoder b -> Decoder c -> Decoder d -> Node -> Result Error value
-map4Impl toVal (Decoder dA) (Decoder dB) (Decoder dC) (Decoder dD) node =
-    Result.map4 toVal (dA node) (dB node) (dC node) (dD node)
+map4Impl toVal (Decoder dA) (Decoder dB) (Decoder dC) (Decoder dD) aNode =
+    Result.map4 toVal (dA aNode) (dB aNode) (dC aNode) (dD aNode)
 
 
 {-| -}
@@ -823,8 +841,8 @@ map5Impl :
     -> Decoder e
     -> Node
     -> Result Error value
-map5Impl toVal (Decoder dA) (Decoder dB) (Decoder dC) (Decoder dD) (Decoder dE) node =
-    Result.map5 toVal (dA node) (dB node) (dC node) (dD node) (dE node)
+map5Impl toVal (Decoder dA) (Decoder dB) (Decoder dC) (Decoder dD) (Decoder dE) aNode =
+    Result.map5 toVal (dA aNode) (dB aNode) (dC aNode) (dD aNode) (dE aNode)
 
 
 {-| Equivalent to [`Json.Decode.Extra.andMap`][jdeam], allows writing XML decoders in sequential style.
@@ -972,17 +990,17 @@ path path_ listDecoder =
 
 
 pathImpl : List String -> ListDecoder a -> Node -> Result Error a
-pathImpl path_ (ListDecoder listDecoder) node =
-    node
+pathImpl path_ (ListDecoder listDecoder) aNode =
+    aNode
         |> children
-        |> query path_ node
+        |> query path_ aNode
         |> listDecoder
         |> Result.mapError (concatPath path_)
 
 
 children : Node -> List Node
-children node =
-    case node of
+children aNode =
+    case aNode of
         Element _ _ nodes ->
             nodes
 
@@ -1017,8 +1035,8 @@ query path_ ancestor collected =
 
 
 hasName : String -> Node -> Bool
-hasName name node =
-    case node of
+hasName name aNode =
+    case aNode of
         Element nodeName _ _ ->
             name == nodeName
 
@@ -1149,7 +1167,7 @@ errorToRows error =
             in
             "All decoders failed:" :: innerRows
 
-        Failure problem node ->
-            [ "Node: " ++ formatNode node
+        Failure problem aNode ->
+            [ "Node: " ++ formatNode aNode
             , problem
             ]
