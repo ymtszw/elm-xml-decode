@@ -3,7 +3,7 @@ module Xml.Decode.Internal exposing (escape, formatNode)
 {-| Internal functions.
 -}
 
-import XmlParser exposing (Attribute, Node(..), Xml)
+import XmlParser exposing (Attribute, Node(..))
 
 
 {-| Format XML node for error dump. Always produce end tags.
