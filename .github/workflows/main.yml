@@ -24,6 +24,7 @@ jobs:
           path: |
             node_modules
             elm-stuff
+            benchmarks/elm-stuff
             ~/.elm
       - uses: actions/setup-node@v2
         with:
