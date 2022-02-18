@@ -1,0 +1,32 @@
+name: Main Workflow
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  # TODO publish when tagged
+  # TODO update benchmark regularly
+  test:
+    runs-on: ubuntu-20.04
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          key: v1-${{ hashFiles('package-lock.json') }}-${{ hashFiles('elm.json', 'elm-tooling.json') }}
+          restore-keys: |
+            v1-${{ hashFiles('package-lock.json') }}-
+            v1-
+          path: |
+            node_modules
+            elm-stuff
+            ~/.elm
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "16"
+      - run: npm ci
+      - run: npm test

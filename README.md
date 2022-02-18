@@ -1,7 +1,5 @@
 # elm-xml-decode
 
-[![CircleCI][cc]](https://circleci.com/gh/ymtszw/elm-xml-decode/tree/master)
-
 [cc]: https://circleci.com/gh/ymtszw/elm-xml-decode/tree/master.svg?style=svg
 
 XML decoder, sharing the spirit of [`Json.Decode`][jd]. Ready for Elm 0.19.

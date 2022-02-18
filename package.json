@@ -1,0 +1,10 @@
+{
+  "devDependencies": {
+    "elm-tooling": "^1.7.0",
+    "elm-verify-examples": "^5.2.0"
+  },
+  "scripts": {
+    "test": "elm-verify-examples && elm-test-rs",
+    "postinstall": "elm-tooling install"
+  }
+}
