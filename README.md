@@ -1,6 +1,6 @@
 # elm-xml-decode
 
-[cc]: https://circleci.com/gh/ymtszw/elm-xml-decode/tree/master.svg?style=svg
+[![Main Workflow](https://github.com/ymtszw/elm-xml-decode/actions/workflows/main.yml/badge.svg)](https://github.com/ymtszw/elm-xml-decode/actions/workflows/main.yml)
 
 XML decoder, sharing the spirit of [`Json.Decode`][jd]. Ready for Elm 0.19.
 
@@ -83,10 +83,11 @@ $ npm ci
 $ npm test
 ```
 
-## Benchmark: Are they efficient? Are they fast?
+## Benchmarks
 
-Benchmark codes can be found in `benchmarks/` directory.
-Using [examples in W3School](https://www.w3schools.com/xml/xml_examples.asp).
+Benchmark app can be found in `benchmarks/` directory.
+Using [examples in W3School](https://www.w3schools.com/xml/xml_examples.asp) and
+[elm-explorations/benchmark](https://github.com/elm-explorations/benchmark).
 
 ```sh
 $ npm run generate-benchmark
@@ -95,41 +96,23 @@ $ npm run generate-benchmark
 
 Also available at <https://ymtszw.github.io/elm-xml-decode/>
 
-Looking forward to see similar benchmarks from other related works!!
-
-### In Elm 0.19
-
-Using [elm-explorations/benchmark](https://github.com/elm-explorations/benchmark).
-Available [here](https://ymtszw.github.io/elm-xml-decode/) as a static web page.
-
 **It may hang for a while** during JIT warming up, but keep waiting (~ a minute).
 
-Sample result (on my MacBook Pro 2019):
+### Elm 0.19.1, elm-xml-decode 3.2.1
+
+Sample result (on my Windows 10 machine):
 
 - Environment
-  - CPU: Intel Core i7 1.7GHz
-  - Mem: DDR4 16GB
-  - macOS Mojave 10.14.6
-  - Google Chrome 78.0.3904.87 64bit
+  - CPU: Intel Core i7-8700K @ 3.7GHz
+  - Mem: 64GB
+  - Windows 10 Pro, 10.0.19044
+  - Google Chrome 98.0.4758.82 64bit
 - Versions
   - elm 0.19.1
-  - elm-xml-decode version: 3.1.0
-  - elm-benchmark 1.0.1
+  - elm-xml-decode version: 3.2.1
+  - elm-benchmark 1.0.2
 
-![bench20191108](https://raw.githubusercontent.com/ymtszw/elm-xml-decode/master/benchmarks/result20191108.png)
-
-### In Elm 0.18 (elm-xml-decode 1.x)
-
-Using [BrianHicks/elm-benchmark](https://github.com/BrianHicks/elm-benchmark).
-
-Sample result (on my MacBookPro early 2015):
-
-- CPU: Core i5 2.7GHz
-- Mem: DDR3 8GB 1867MHz
-- macOS (was El Capitan era, IIRC)
-- Google Chrome 63.0.3239.84 64bit
-
-![bench 1.0](https://raw.githubusercontent.com/ymtszw/elm-xml-decode/master/benchmarks/result1.0.png)
+![bench20220219](https://raw.githubusercontent.com/ymtszw/elm-xml-decode/master/benchmarks/result20220219.png)
 
 ## License
 
