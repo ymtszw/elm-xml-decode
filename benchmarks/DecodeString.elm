@@ -1,28 +1,22 @@
-module Benchmarks exposing (main)
+module DecodeString exposing (cdCatalogDecoder, main, noteDecoder)
 
-import Benchmark exposing (Benchmark, benchmark, describe)
+import Benchmark exposing (benchmark, describe)
 import Benchmark.Runner exposing (BenchmarkProgram, program)
 import ExampleXml
 import Xml.Decode exposing (..)
-import XmlParser
 
 
-suite : Benchmark
-suite =
-    describe "Xml.Decode"
-        [ describe "decodeString"
-            [ benchmark "note" <|
+main : BenchmarkProgram
+main =
+    program <|
+        describe "Xml.Decode.decodeString"
+            [ benchmark "just root" <|
+                \_ -> decodeString (succeed ()) ExampleXml.justRoot
+            , benchmark "note" <|
                 \_ -> decodeString noteDecoder ExampleXml.note
-            , benchmark "cdCatalog" <|
+            , benchmark "CD catalog" <|
                 \_ -> decodeString cdCatalogDecoder ExampleXml.cdCatalog
             ]
-        , describe "decodeXml"
-            [ benchmark "note" <|
-                \_ -> decodeXml noteDecoder noteXml
-            , benchmark "cdCatalog" <|
-                \_ -> decodeXml cdCatalogDecoder cdCatalogXml
-            ]
-        ]
 
 
 type alias Note =
@@ -40,11 +34,6 @@ noteDecoder =
         (path [ "from" ] (single string))
         (path [ "heading" ] (single string))
         (path [ "body" ] (single string))
-
-
-noteXml : XmlParser.Xml
-noteXml =
-    parse ExampleXml.note
 
 
 type alias CD =
@@ -70,24 +59,3 @@ cdCatalogDecoder =
                 |> andMap (path [ "YEAR" ] (single int))
     in
     path [ "CD" ] (list cdDecoder)
-
-
-cdCatalogXml : XmlParser.Xml
-cdCatalogXml =
-    parse ExampleXml.cdCatalog
-
-
-parse : String -> XmlParser.Xml
-parse xmlStr =
-    case XmlParser.parse xmlStr of
-        Ok xml ->
-            xml
-
-        Err _ ->
-            -- Should not happen
-            parse xmlStr
-
-
-main : BenchmarkProgram
-main =
-    program suite

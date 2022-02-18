@@ -76,12 +76,11 @@ pipelineDecoder =
 
 ## Development
 
-Globally install Elm Platform, [`elm-test`](https://github.com/rtfeldman/node-test-runner),
-and [`elm-verify-examples`](https://github.com/stoeffel/elm-verify-examples)
+Install reasonably new Node.js (currently [Node.js 16 is tested](https://github.com/ymtszw/elm-xml-decode/blob/master/.github/workflows/main.yml))
 
 ```sh
-$ elm-verify-examples
-$ elm-test
+$ npm ci
+$ npm test
 ```
 
 ## Benchmark: Are they efficient? Are they fast?
@@ -90,9 +89,11 @@ Benchmark codes can be found in `benchmarks/` directory.
 Using [examples in W3School](https://www.w3schools.com/xml/xml_examples.asp).
 
 ```sh
-$ cd benchmarks/
-$ elm make Benchmarks.elm --optimize --output=../docs/index.html
+$ npm run generate-benchmark
+# Open docs/index.html
 ```
+
+Also available at <https://ymtszw.github.io/elm-xml-decode/>
 
 Looking forward to see similar benchmarks from other related works!!
 

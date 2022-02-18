@@ -3,3 +3,5 @@ node_modules/
 tests/Doc/
 tests/VerifyExamples/
 docs.json
+docs/DecodeString.html
+docs/DecodeXml.html

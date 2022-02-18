@@ -5,6 +5,7 @@
   },
   "scripts": {
     "test": "elm-verify-examples && elm-test-rs",
+    "generate-benchmark": "cd benchmarks;elm make DecodeString.elm --optimize --output=../docs/DecodeString.html;elm make DecodeXml.elm --optimize --output=../docs/DecodeXml.html",
     "postinstall": "elm-tooling install"
   }
 }

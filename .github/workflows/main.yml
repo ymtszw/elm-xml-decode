@@ -6,13 +6,13 @@ on:
       - master
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
 jobs:
   # TODO publish when tagged
-  # TODO update benchmark regularly
-  test:
+  test-and-deploy-benchmark:
     runs-on: ubuntu-20.04
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/cache@v2
@@ -30,3 +30,10 @@ jobs:
           node-version: "16"
       - run: npm ci
       - run: npm test
+      - run: npm run generate-benchmark
+      - name: Deploy Benchmark
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.ref == 'refs/heads/master' }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
