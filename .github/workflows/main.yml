@@ -31,7 +31,7 @@ jobs:
           node-version: "16"
       - run: npm ci
       - run: npm test
-      - run: npx elm-format --validate src/
+      - run: npx elm-format --validate src/ tests/ benchmarks/
       - run: npm run generate-benchmark
       - name: Deploy Benchmark
         uses: peaceiris/actions-gh-pages@v3

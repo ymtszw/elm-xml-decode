@@ -4,7 +4,7 @@
     "elm-verify-examples": ">= 3.1.0"
   },
   "scripts": {
-    "test": "elm-verify-examples && elm-test-rs",
+    "test": "elm-verify-examples && elm-test-rs && rm -rf tests/VerifyExamples",
     "generate-benchmark": "cd benchmarks;elm make DecodeString.elm --optimize --output=../docs/DecodeString.html;elm make DecodeXml.elm --optimize --output=../docs/DecodeXml.html",
     "postinstall": "elm-tooling install"
   }
