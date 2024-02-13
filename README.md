@@ -4,10 +4,10 @@
 
 XML decoder, sharing the spirit of [`Json.Decode`][jd]. Ready for Elm 0.19.
 
-Using [jinjor/elm-xml-parser][exp] as its parser component, which is based on [elm/parser][ep].
+Using [miniBill/elm-xml-parser][exp] as its parser component, which is based on [elm/parser][ep].
 
 [jd]: https://github.com/elm/json
-[exp]: http://github.com/jinjor/elm-xml-parser
+[exp]: http://github.com/miniBill/elm-xml-parser
 [ep]: https://github.com/elm/parser
 
 ## Related Works
@@ -76,11 +76,11 @@ pipelineDecoder =
 
 ## Development
 
-Install reasonably new Node.js (currently [Node.js 16 is tested](https://github.com/ymtszw/elm-xml-decode/blob/master/.github/workflows/main.yml))
+Install reasonably new Node.js (currently [Node.js 20 is tested](https://github.com/ymtszw/elm-xml-decode/blob/master/.github/workflows/main.yml))
 
 ```sh
-$ npm ci
-$ npm test
+npm install
+npm test
 ```
 
 ## Benchmarks
@@ -90,7 +90,7 @@ Using [examples in W3School](https://www.w3schools.com/xml/xml_examples.asp) and
 [elm-explorations/benchmark](https://github.com/elm-explorations/benchmark).
 
 ```sh
-$ npm run generate-benchmark
+npm run generate-benchmark
 # Open docs/index.html
 ```
 
