@@ -38,6 +38,7 @@ jobs:
       - run: npm test
       - run: npx elm-format --validate src/ tests/ benchmarks/
   deploy-benchmark:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
     needs: test
     runs-on: ubuntu-22.04
     steps:
