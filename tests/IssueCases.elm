@@ -39,6 +39,7 @@ suite =
                         |> Expect.equal (Ok [ ( 1, "a" ), ( 2, "b" ) ])
             ]
         , describe "discourse#5412" <|
+            -- https://discourse.elm-lang.org/t/using-xml-decode/5412
             let
                 exampleXml =
                     """
@@ -92,6 +93,14 @@ suite =
                                 , EntityType "Animal" [ Property "ban" ]
                                 ]
                             )
+            ]
+        , describe "#8" <|
+            -- https://github.com/ymtszw/elm-xml-decode/issues/8
+            [ test "stringAttr should not cut values" <|
+                \_ ->
+                    "<root url=\"a&amp;b\"></root>"
+                        |> run (stringAttr "url")
+                        |> Expect.equal (Ok "a&b")
             ]
         ]
 
