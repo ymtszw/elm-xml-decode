@@ -15,7 +15,6 @@ permissions:
   id-token: write
 
 jobs:
-  # TODO publish new version when tagged
   test:
     runs-on: ubuntu-22.04
     steps:
@@ -37,6 +36,30 @@ jobs:
       - run: npm install
       - run: npm test
       - run: npx elm-format --validate src/ tests/ benchmarks/
+  publish:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+    needs: test
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          key: v1-${{ hashFiles('package-lock.json') }}-${{ hashFiles('elm.json', 'elm-tooling.json') }}
+          restore-keys: |
+            v1-${{ hashFiles('package-lock.json') }}-
+            v1-
+          path: |
+            node_modules
+            elm-stuff
+            benchmarks/elm-stuff
+            ~/.elm
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: dillonkearns/elm-publish-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-elm: ./node_modules/.bin/elm
   deploy-benchmark:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
     needs: test
