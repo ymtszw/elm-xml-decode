@@ -10,12 +10,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
-  # TODO publish when tagged
+  # TODO publish new version when tagged
   test-and-deploy-benchmark:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/cache@v2
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
         with:
           key: v1-${{ hashFiles('package-lock.json') }}-${{ hashFiles('elm.json', 'elm-tooling.json') }}
           restore-keys: |
@@ -26,16 +26,19 @@ jobs:
             elm-stuff
             benchmarks/elm-stuff
             ~/.elm
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v4
         with:
-          node-version: "16"
-      - run: npm ci
+          node-version: "20"
+      - run: npm install
       - run: npm test
       - run: npx elm-format --validate src/ tests/ benchmarks/
       - run: npm run generate-benchmark
-      - name: Deploy Benchmark
-        uses: peaceiris/actions-gh-pages@v3
-        if: ${{ github.ref == 'refs/heads/master' }}
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
+          path: "./docs"
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
