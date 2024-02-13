@@ -2,7 +2,15 @@
 
 ## Upcoming
 
+- ...
+
+## 3.2.2
+
 - Now uses [miniBill/elm-xml-parser](https://package.elm-lang.org/packages/miniBill/elm-xml-parser/latest/) fork for parsing XML. Thanks [@miniBill](https://github.com/miniBill)!
+
+## 3.2.1
+
+- Doc fix
 
 ## 3.2.0
 
