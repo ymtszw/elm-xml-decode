@@ -1,7 +1,8 @@
 {
+  "// devDependencies": "Waiting for elm-verify-examples to be updated to 6.0.0+, https://github.com/stoeffel/elm-verify-examples/issues/112",
   "devDependencies": {
     "elm-tooling": ">= 1.7.0",
-    "elm-verify-examples": ">= 3.1.0"
+    "elm-verify-examples": "< 6.0.0"
   },
   "scripts": {
     "test": "elm-verify-examples && elm-test-rs && rm -rf tests/VerifyExamples",
