@@ -9,9 +9,14 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   # TODO publish new version when tagged
-  test-and-deploy-benchmark:
+  test:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -32,6 +37,22 @@ jobs:
       - run: npm install
       - run: npm test
       - run: npx elm-format --validate src/ tests/ benchmarks/
+  deploy-benchmark:
+    needs: test
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          key: v1-${{ hashFiles('package-lock.json') }}-${{ hashFiles('elm.json', 'elm-tooling.json') }}
+          restore-keys: |
+            v1-${{ hashFiles('package-lock.json') }}-
+            v1-
+          path: |
+            node_modules
+            elm-stuff
+            benchmarks/elm-stuff
+            ~/.elm
       - run: npm run generate-benchmark
       - name: Setup Pages
         uses: actions/configure-pages@v4
