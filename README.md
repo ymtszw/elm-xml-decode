@@ -76,7 +76,7 @@ pipelineDecoder =
 
 ## Development
 
-Install reasonably new Node.js (currently [Node.js 20 is tested](https://github.com/ymtszw/elm-xml-decode/blob/master/.github/workflows/main.yml))
+Install reasonably new Node.js (currently [Node.js 22 is tested](https://github.com/ymtszw/elm-xml-decode/blob/master/.github/workflows/main.yml))
 
 ```sh
 npm install
