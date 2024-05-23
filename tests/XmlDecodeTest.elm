@@ -7,6 +7,21 @@ import Xml.Decode exposing (..)
 import Xml.Decode.Internal exposing (escape)
 
 
+suite : Test
+suite =
+    describe "Xml.Decode"
+        [ stringSuite
+        , intSuite
+        , floatSuite
+        , boolSuite
+        , pathSuite
+        , withDefaultSuite
+        , maybeSuite
+        , oneOfSuite
+        , errorMessageSuite
+        ]
+
+
 stringSuite : Test
 stringSuite =
     describe "string"
@@ -60,9 +75,12 @@ intSuite =
 floatSuite : Test
 floatSuite =
     describe "float"
-        [ fuzzOk Fuzz.float float "bare float" String.fromFloat
+        [ fuzzOk Fuzz.niceFloat float "nice float" String.fromFloat
         , fuzzOk Fuzz.int float "bare int" String.fromInt
+        , testOk float "Infinity" (1 / 0) -- !!
+        , testOk float "-Infinity" (-1 / 0) -- !!
         , testErr float "string"
+        , testErr float "NaN" -- Infinity is acceptable but NaN is not
         ]
 
 
@@ -318,18 +336,3 @@ testErrorMessages decoder input expectedRows =
     test ("should produce error message:\n" ++ expect) <|
         \_ ->
             run decoder (xml input) |> Expect.equal (Err expect)
-
-
-suite : Test
-suite =
-    describe "Xml.Decode"
-        [ stringSuite
-        , intSuite
-        , floatSuite
-        , boolSuite
-        , pathSuite
-        , withDefaultSuite
-        , maybeSuite
-        , oneOfSuite
-        , errorMessageSuite
-        ]
