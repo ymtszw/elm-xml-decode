@@ -30,7 +30,7 @@ jobs:
             elm-stuff
             benchmarks/elm-stuff
             ~/.elm
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: "22"
       - run: npm install
@@ -53,7 +53,7 @@ jobs:
             elm-stuff
             benchmarks/elm-stuff
             ~/.elm
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: "20"
       - uses: dillonkearns/elm-publish-action@v1
