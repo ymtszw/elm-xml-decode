@@ -56,7 +56,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "20"
-      - uses: dillonkearns/elm-publish-action@v1
+      - uses: dillonkearns/elm-publish-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-elm: ./node_modules/.bin/elm
