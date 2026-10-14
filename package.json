@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "elm-tooling": ">= 1.7.0",
+    "elm-tooling": ">= 1.21.0",
     "elm-verify-examples": ">= 6.0.3"
   },
   "scripts": {
