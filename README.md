@@ -76,7 +76,7 @@ pipelineDecoder =
 
 ## Development
 
-Install reasonably new Node.js (currently [Node.js 22 is tested](https://github.com/ymtszw/elm-xml-decode/blob/master/.github/workflows/main.yml))
+Install reasonably new Node.js (currently [Node.js 24 is tested](https://github.com/ymtszw/elm-xml-decode/blob/master/.github/workflows/main.yml))
 
 Development and tests use Elm 0.19.3, installed locally by elm-tooling during `npm install`.
 
